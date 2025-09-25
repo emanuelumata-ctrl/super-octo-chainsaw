@@ -28,7 +28,7 @@ const TrainingSchema = z.object({
     message: 'Data inválida.',
   }),
   trainingHours: z.coerce.number().min(1, 'As horas de treinamento devem ser pelo menos 1.'),
-  qrCodeData: z.string().optional(),
+  qrCodeData: z.string().min(1, "O QR code é obrigatório para validação."),
 });
 
 interface TrainingFormProps {
@@ -48,6 +48,7 @@ export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps)
       trainerName: '',
       trainingDate: '',
       trainingHours: 1,
+      qrCodeData: '',
     },
   });
 
@@ -63,17 +64,7 @@ export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps)
         action={dispatch}
         className="space-y-6"
       >
-        <FormField
-          control={form.control}
-          name="qrCodeData"
-          render={({ field }) => (
-            <FormItem className="hidden">
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <input type="hidden" {...form.register('qrCodeData')} />
         <FormField
           control={form.control}
           name="title"
@@ -149,6 +140,8 @@ export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps)
         {state?.message && (
           <p className="text-sm font-medium text-destructive">{state.message}</p>
         )}
+        
+        <FormMessage>{form.formState.errors.qrCodeData?.message}</FormMessage>
 
         <SubmitButton isQrCodeScanned={isQrCodeScanned} />
       </form>

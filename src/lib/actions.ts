@@ -16,7 +16,7 @@ const TrainingSchema = z.object({
     message: 'Data inválida.',
   }),
   trainingHours: z.coerce.number().min(1, 'As horas de treinamento devem ser pelo menos 1.'),
-  qrCodeData: z.string().optional(),
+  qrCodeData: z.string().min(1, "O QR code é obrigatório para validação."),
 });
 
 
@@ -35,12 +35,6 @@ export async function createTraining(prevState: any, formData: FormData) {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'A validação falhou. Por favor, verifique os campos.',
     };
-  }
-  
-  if (!validatedFields.data.qrCodeData) {
-      return {
-          message: 'Validação do QR Code falhou. Tente escanear novamente.',
-      }
   }
 
   try {

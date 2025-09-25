@@ -12,8 +12,8 @@ export default function NewTrainingPage() {
 
 
   const handleQrScan = (data: string) => {
-    setIsQrCodeScanned(true);
     setQrCodeData(data);
+    setIsQrCodeScanned(true);
   };
 
   return (
