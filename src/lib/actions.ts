@@ -103,10 +103,15 @@ export async function updateUserEnrollment(
   isEnrolled: boolean
 ) {
   if (isEnrolled) {
-    enrollments = enrollments.filter(
-      (e) => !(e.trainingId === trainingId && e.userId === userId)
+    // Para remover a inscrição (un-enroll)
+    const index = enrollments.findIndex(
+      (e) => e.trainingId === trainingId && e.userId === userId
     );
+    if (index > -1) {
+      enrollments.splice(index, 1);
+    }
   } else {
+    // Para adicionar a inscrição (enroll)
     if (users.find((u) => u.id === userId)) {
       enrollments.push({
         trainingId,
