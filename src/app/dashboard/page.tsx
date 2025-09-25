@@ -134,7 +134,7 @@ export default function DashboardPage() {
                             <div>
                               <p className="font-semibold">{training.title}</p>
                               <p className="text-sm text-muted-foreground">
-                                {training.category}
+                                Por {training.trainerName}
                               </p>
                               {enrollment.status === 'Concluído' &&
                                 enrollment.completionDate && (

@@ -7,17 +7,10 @@ export type User = {
   admissionDate: string;
 };
 
-export type TrainingCategory =
-  | 'Liderança'
-  | 'Técnico'
-  | 'Conformidade'
-  | 'Habilidades Interpessoais';
-
 export type Training = {
   id: string;
   title: string;
   description: string;
-  category: TrainingCategory;
   contentUrl: string; // Could be video link, doc path, etc.
   coverImageId: string;
   trainerName: string;

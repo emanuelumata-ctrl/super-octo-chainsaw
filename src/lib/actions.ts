@@ -11,7 +11,6 @@ import { summarizeDocument as summarizeDocumentFlow } from '@/ai/flows/summarize
 const TrainingSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
   description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
-  category: z.enum(['Liderança', 'Técnico', 'Conformidade', 'Habilidades Interpessoais']),
   trainerName: z.string().min(3, 'O nome do treinador deve ter pelo menos 3 caracteres.'),
   trainingDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Data inválida.',
@@ -23,7 +22,6 @@ export async function createTraining(prevState: any, formData: FormData) {
   const validatedFields = TrainingSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
-    category: formData.get('category'),
     trainerName: formData.get('trainerName'),
     trainingDate: formData.get('trainingDate'),
     trainingHours: formData.get('trainingHours'),

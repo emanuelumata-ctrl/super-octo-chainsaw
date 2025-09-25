@@ -54,7 +54,6 @@ export const trainings: Training[] = [
     title: 'Princípios de Liderança',
     description:
       'Domine os princípios essenciais de liderança eficaz e gestão de equipes.',
-    category: 'Liderança',
     contentUrl: '#',
     coverImageId: 'leadership-training',
     trainerName: 'Carlos Andrade',
@@ -66,7 +65,6 @@ export const trainings: Training[] = [
     title: 'Onboarding Técnico para Devs',
     description:
       'Fique por dentro de nossa stack de tecnologia, fluxos de desenvolvimento e melhores práticas.',
-    category: 'Técnico',
     contentUrl: '#',
     coverImageId: 'technical-onboarding',
     trainerName: 'Fernanda Lima',
@@ -78,7 +76,6 @@ export const trainings: Training[] = [
     title: 'Conformidade e Segurança de Dados',
     description:
       'Entenda suas responsabilidades em relação à privacidade de dados e conformidade da empresa.',
-    category: 'Conformidade',
     contentUrl: '#',
     coverImageId: 'compliance-basics',
     trainerName: 'Roberto Almeida',
@@ -90,7 +87,6 @@ export const trainings: Training[] = [
     title: 'Comunicação Efetiva',
     description:
       'Melhore suas habilidades de comunicação para uma melhor colaboração e trabalho em equipe.',
-    category: 'Habilidades Interpessoais',
     contentUrl: '#',
     coverImageId: 'communication-skills',
     trainerName: 'Sofia Bernardes',

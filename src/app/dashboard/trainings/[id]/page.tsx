@@ -23,7 +23,7 @@ export default function TrainingDetailPage({
     <div className="space-y-8">
       <PageHeader
         title={training.title}
-        description={training.category}
+        description={`Por ${training.trainerName} - ${training.trainingHours} horas`}
       />
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">

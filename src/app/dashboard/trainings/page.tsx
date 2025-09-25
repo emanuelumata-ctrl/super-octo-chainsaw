@@ -12,7 +12,6 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/page-header';
 import { trainings, enrollments } from '@/lib/data';
 import { Eye, PlusCircle } from 'lucide-react';
@@ -37,7 +36,6 @@ export default function TrainingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
-                <TableHead>Categoria</TableHead>
                 <TableHead>Usuários Inscritos</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
@@ -52,9 +50,6 @@ export default function TrainingsPage() {
                 return (
                   <TableRow key={training.id}>
                     <TableCell className="font-medium">{training.title}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{training.category}</Badge>
-                    </TableCell>
                     <TableCell>{enrolledCount}</TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="ghost" size="icon">

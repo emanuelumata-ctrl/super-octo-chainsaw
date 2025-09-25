@@ -68,30 +68,65 @@ export function QrCodeReader({ onQrCodeScan }: QrCodeReaderProps) {
 
                 if (code) {
                     try {
-                        const data = JSON.parse(code.data);
-                        onQrCodeScan(data);
+                        // Tenta analisar como JSON primeiro
+                        const jsonData = JSON.parse(code.data);
+                        onQrCodeScan(jsonData);
                         toast({
                             title: 'QR Code Lido com Sucesso!',
                             description: 'Os dados do treinamento foram preenchidos.',
                         });
-                        if (stream) {
-                            stream.getTracks().forEach(track => track.stop());
-                        }
-                        cancelAnimationFrame(animationFrameId);
-                        return;
                     } catch (e) {
-                         // Se não for JSON, trate como texto simples
-                         onQrCodeScan({ title: code.data });
-                         toast({
-                             title: 'QR Code Lido!',
-                             description: 'O título foi preenchido.',
-                         });
-                         if (stream) {
-                            stream.getTracks().forEach(track => track.stop());
-                         }
-                         cancelAnimationFrame(animationFrameId);
-                         return;
+                        // Se não for JSON, trate como texto com chave-valor
+                        const lines = code.data.split('\n');
+                        const data: any = {};
+                        const keyMapping: { [key: string]: string } = {
+                          'Título': 'title',
+                          'Nome do Treinador': 'trainerName',
+                          'Data de treinamento': 'trainingDate',
+                          'Horas de treinamento': 'trainingHours',
+                        };
+
+                        lines.forEach(line => {
+                            const parts = line.split(':');
+                            if (parts.length > 1) {
+                                const key = parts[0].trim();
+                                const value = parts.slice(1).join(':').trim();
+                                const mappedKey = keyMapping[key];
+                                if (mappedKey) {
+                                    if(mappedKey === 'trainingDate') {
+                                        // Formato esperado DD/MM/YYYY para YYYY-MM-DD
+                                        const dateParts = value.split('/');
+                                        if (dateParts.length === 3) {
+                                            data[mappedKey] = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                                        }
+                                    } else {
+                                        data[mappedKey] = value;
+                                    }
+                                }
+                            }
+                        });
+
+                        if (Object.keys(data).length > 0) {
+                            onQrCodeScan(data);
+                            toast({
+                                title: 'QR Code Lido com Sucesso!',
+                                description: 'Os dados do treinamento foram preenchidos.',
+                            });
+                        } else {
+                            // Fallback se o formato não for reconhecido
+                            onQrCodeScan({ title: code.data });
+                            toast({
+                                title: 'QR Code Lido!',
+                                description: 'O título foi preenchido, mas o formato completo não foi reconhecido.',
+                            });
+                        }
                     }
+                    
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                    cancelAnimationFrame(animationFrameId);
+                    return;
                 }
             }
         }
