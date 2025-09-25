@@ -6,8 +6,8 @@ export default function NewTrainingPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Create New Training"
-        description="Fill out the form to add a new training module."
+        title="Criar Novo Treinamento"
+        description="Preencha o formulário para adicionar um novo módulo de treinamento."
       />
       <Card className="max-w-2xl">
         <CardContent className="pt-6">

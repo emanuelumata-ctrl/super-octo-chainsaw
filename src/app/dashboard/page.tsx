@@ -29,51 +29,51 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Welcome, Admin!"
-        description="Here's a snapshot of your team's learning journey."
+        title="Bem-vindo, Admin!"
+        description="Aqui está um resumo da jornada de aprendizado da sua equipe."
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Trainings</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Treinamentos</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalTrainings}</div>
             <p className="text-xs text-muted-foreground">
-              Modules available
+              Módulos disponíveis
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Enrolled Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Usuários Inscritos</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              Employees in the system
+              Funcionários no sistema
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Courses</CardTitle>
+            <CardTitle className="text-sm font-medium">Cursos Concluídos</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{completedEnrollments}</div>
             <p className="text-xs text-muted-foreground">
-              Across all modules
+              Em todos os módulos
             </p>
           </CardContent>
         </Card>
       </div>
 
       <div>
-        <h2 className="mb-4 font-headline text-2xl font-semibold">Ongoing Trainings</h2>
+        <h2 className="mb-4 font-headline text-2xl font-semibold">Treinamentos em Andamento</h2>
         {ongoingTrainings.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {ongoingTrainings.map((training) => {
@@ -96,7 +96,7 @@ export default function DashboardPage() {
                     <CardDescription className="line-clamp-2">{training.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex items-center justify-between text-sm text-primary">
-                    <span>View Progress</span>
+                    <span>Ver Progresso</span>
                     <ArrowRight className="h-4 w-4" />
                   </CardContent>
                 </Link>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
             )})}
           </div>
         ) : (
-          <p className="text-muted-foreground">No trainings are currently in progress.</p>
+          <p className="text-muted-foreground">Nenhum treinamento em andamento no momento.</p>
         )}
       </div>
     </div>

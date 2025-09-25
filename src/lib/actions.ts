@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -10,9 +9,9 @@ import type { EnrollmentStatus } from './types';
 import { summarizeDocument as summarizeDocumentFlow } from '@/ai/flows/summarize-training-documents';
 
 const TrainingSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters.'),
-  description: z.string().min(10, 'Description must be at least 10 characters.'),
-  category: z.enum(['Leadership', 'Technical', 'Compliance', 'Soft Skills']),
+  title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
+  description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
+  category: z.enum(['Liderança', 'Técnico', 'Conformidade', 'Habilidades Interpessoais']),
 });
 
 export async function createTraining(prevState: any, formData: FormData) {
@@ -25,7 +24,7 @@ export async function createTraining(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed. Please check the fields.',
+      message: 'A validação falhou. Por favor, verifique os campos.',
     };
   }
 
@@ -34,12 +33,12 @@ export async function createTraining(prevState: any, formData: FormData) {
       id: `trn-${Date.now()}`,
       ...validatedFields.data,
       contentUrl: '#',
-      coverImageId: 'technical-onboarding', // Default image for new trainings
+      coverImageId: 'technical-onboarding', // Imagem padrão para novos treinamentos
     };
     trainings.push(newTraining);
   } catch (error) {
     return {
-      message: 'Database Error: Failed to Create Training.',
+      message: 'Erro no Banco de Dados: Falha ao Criar Treinamento.',
     };
   }
 
@@ -61,7 +60,7 @@ export async function updateUserEnrollment(
       enrollments.push({
         trainingId,
         userId,
-        status: 'Not Started',
+        status: 'Não Iniciado',
       });
     }
   }
@@ -79,7 +78,7 @@ export async function updateEnrollmentStatus(
 
   if (enrollment) {
     enrollment.status = status;
-    if (status === 'Completed') {
+    if (status === 'Concluído') {
       enrollment.completionDate = new Date().toISOString().split('T')[0];
     } else {
       delete enrollment.completionDate;
@@ -90,7 +89,7 @@ export async function updateEnrollmentStatus(
 
 export async function summarizeDocumentAction(documentContent: string) {
   if (!documentContent || documentContent.trim().length < 50) {
-    return { summary: '', error: 'Please provide at least 50 characters to summarize.' };
+    return { summary: '', error: 'Forneça pelo menos 50 caracteres para resumir.' };
   }
 
   try {
@@ -98,6 +97,6 @@ export async function summarizeDocumentAction(documentContent: string) {
     return { summary: result.summary, error: '' };
   } catch (e) {
     console.error(e);
-    return { summary: '', error: 'Failed to generate summary. Please try again.' };
+    return { summary: '', error: 'Falha ao gerar o resumo. Por favor, tente novamente.' };
   }
 }

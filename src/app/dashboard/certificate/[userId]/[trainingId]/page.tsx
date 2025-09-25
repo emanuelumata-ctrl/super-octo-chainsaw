@@ -34,7 +34,7 @@ export default function CertificatePage({
          <Button asChild variant="outline">
            <Link href={`/dashboard/trainings/${training.id}`}>
              <ArrowLeft className="mr-2 h-4 w-4" />
-             Back to Training
+             Voltar ao Treinamento
            </Link>
          </Button>
        </div>

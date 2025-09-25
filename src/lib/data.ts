@@ -41,37 +41,37 @@ export const users: User[] = [
 export const trainings: Training[] = [
   {
     id: 'trn-1',
-    title: 'Leadership Principles',
+    title: 'Princípios de Liderança',
     description:
-      'Master the core principles of effective leadership and team management.',
-    category: 'Leadership',
+      'Domine os princípios essenciais de liderança eficaz e gestão de equipes.',
+    category: 'Liderança',
     contentUrl: '#',
     coverImageId: 'leadership-training',
   },
   {
     id: 'trn-2',
-    title: 'Technical Onboarding for Devs',
+    title: 'Onboarding Técnico para Devs',
     description:
-      'Get up to speed with our tech stack, development workflows, and best practices.',
-    category: 'Technical',
+      'Fique por dentro de nossa stack de tecnologia, fluxos de desenvolvimento e melhores práticas.',
+    category: 'Técnico',
     contentUrl: '#',
     coverImageId: 'technical-onboarding',
   },
   {
     id: 'trn-3',
-    title: 'Compliance & Data Security',
+    title: 'Conformidade e Segurança de Dados',
     description:
-      'Understand your responsibilities regarding data privacy and company compliance.',
-    category: 'Compliance',
+      'Entenda suas responsabilidades em relação à privacidade de dados e conformidade da empresa.',
+    category: 'Conformidade',
     contentUrl: '#',
     coverImageId: 'compliance-basics',
   },
   {
     id: 'trn-4',
-    title: 'Effective Communication',
+    title: 'Comunicação Efetiva',
     description:
-      'Improve your communication skills for better collaboration and teamwork.',
-    category: 'Soft Skills',
+      'Melhore suas habilidades de comunicação para uma melhor colaboração e trabalho em equipe.',
+    category: 'Habilidades Interpessoais',
     contentUrl: '#',
     coverImageId: 'communication-skills',
   },
@@ -81,17 +81,17 @@ export let enrollments: Enrollment[] = [
   {
     userId: 'user-1',
     trainingId: 'trn-1',
-    status: 'Completed',
+    status: 'Concluído',
     completionDate: '2023-10-15',
   },
-  { userId: 'user-1', trainingId: 'trn-2', status: 'In Progress' },
-  { userId: 'user-2', trainingId: 'trn-1', status: 'In Progress' },
+  { userId: 'user-1', trainingId: 'trn-2', status: 'Em Progresso' },
+  { userId: 'user-2', trainingId: 'trn-1', status: 'Em Progresso' },
   {
     userId: 'user-2',
     trainingId: 'trn-3',
-    status: 'Completed',
+    status: 'Concluído',
     completionDate: '2023-11-01',
   },
-  { userId: 'user-3', trainingId: 'trn-1', status: 'Not Started' },
-  { userId: 'user-4', trainingId: 'trn-4', status: 'In Progress' },
+  { userId: 'user-3', trainingId: 'trn-1', status: 'Não Iniciado' },
+  { userId: 'user-4', trainingId: 'trn-4', status: 'Em Progresso' },
 ];

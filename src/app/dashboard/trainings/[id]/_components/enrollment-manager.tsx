@@ -46,7 +46,7 @@ export function EnrollmentManager({
       if (isEnrolled) {
         setEnrollments((prev) => prev.filter((e) => e.userId !== user.id));
       } else {
-        setEnrollments((prev) => [...prev, { userId: user.id, trainingId, status: 'Not Started' }]);
+        setEnrollments((prev) => [...prev, { userId: user.id, trainingId, status: 'Não Iniciado' }]);
       }
     });
   };
@@ -60,7 +60,7 @@ export function EnrollmentManager({
             ? {
                 ...e,
                 status,
-                completionDate: status === 'Completed' ? new Date().toISOString().split('T')[0] : undefined,
+                completionDate: status === 'Concluído' ? new Date().toISOString().split('T')[0] : undefined,
               }
             : e
         )
@@ -69,18 +69,18 @@ export function EnrollmentManager({
   };
 
   const statusColors: Record<EnrollmentStatus, 'default' | 'secondary' | 'outline'> = {
-    'Completed': 'default',
-    'In Progress': 'secondary',
-    'Not Started': 'outline',
+    'Concluído': 'default',
+    'Em Progresso': 'secondary',
+    'Não Iniciado': 'outline',
   };
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>User</TableHead>
+          <TableHead>Usuário</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead className="text-right">Enrolled</TableHead>
+          <TableHead className="text-right">Inscrito</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -109,7 +109,7 @@ export function EnrollmentManager({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-[150px]">
-                      {(['Not Started', 'In Progress', 'Completed'] as EnrollmentStatus[]).map((status) => (
+                      {(['Não Iniciado', 'Em Progresso', 'Concluído'] as EnrollmentStatus[]).map((status) => (
                         <DropdownMenuItem key={status} onSelect={() => handleStatusChange(user.id, status)}>
                           {status}
                         </DropdownMenuItem>
@@ -117,13 +117,13 @@ export function EnrollmentManager({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Badge variant="destructive">Not Enrolled</Badge>
+                  <Badge variant="destructive">Não Inscrito</Badge>
                 )}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                 {enrollment?.status === 'Completed' && (
-                     <Button asChild variant="ghost" size="icon" title="View Certificate">
+                 {enrollment?.status === 'Concluído' && (
+                     <Button asChild variant="ghost" size="icon" title="Ver Certificado">
                        <Link href={`/dashboard/certificate/${user.id}/${trainingId}`}>
                          <Award className="h-4 w-4 text-primary" />
                        </Link>
@@ -133,7 +133,7 @@ export function EnrollmentManager({
                     checked={isEnrolled}
                     onCheckedChange={() => handleEnrollmentChange(user, isEnrolled)}
                     disabled={isPending}
-                    aria-label={`Enroll ${user.name}`}
+                    aria-label={`Inscrever ${user.name}`}
                   />
                 </div>
               </TableCell>

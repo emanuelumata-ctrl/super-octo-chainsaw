@@ -27,16 +27,16 @@ import {
 } from '@/components/ui/form';
 
 const TrainingSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters.'),
-  description: z.string().min(10, 'Description must be at least 10 characters.'),
-  category: z.enum(['Leadership', 'Technical', 'Compliance', 'Soft Skills']),
+  title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
+  description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
+  category: z.enum(['Liderança', 'Técnico', 'Conformidade', 'Habilidades Interpessoais']),
 });
 
 const trainingCategories: TrainingCategory[] = [
-  'Leadership',
-  'Technical',
-  'Compliance',
-  'Soft Skills',
+  'Liderança',
+  'Técnico',
+  'Conformidade',
+  'Habilidades Interpessoais',
 ];
 
 export function TrainingForm() {
@@ -48,7 +48,7 @@ export function TrainingForm() {
     defaultValues: {
       title: '',
       description: '',
-      category: 'Technical',
+      category: 'Técnico',
     },
   });
 
@@ -60,9 +60,9 @@ export function TrainingForm() {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>Título</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Advanced React Patterns" {...field} />
+                <Input placeholder="ex: Padrões Avançados de React" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -73,11 +73,11 @@ export function TrainingForm() {
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>Categoria</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -97,10 +97,10 @@ export function TrainingForm() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Descrição</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Describe the training module..."
+                  placeholder="Descreva o módulo de treinamento..."
                   className="resize-none"
                   {...field}
                 />
@@ -125,7 +125,7 @@ function SubmitButton() {
 
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? 'Creating...' : 'Create Training'}
+      {pending ? 'Criando...' : 'Criar Treinamento'}
     </Button>
   );
 }

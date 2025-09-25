@@ -29,8 +29,8 @@ export default function TrainingDetailPage({
         <div className="lg:col-span-2">
             <Card>
                 <CardHeader>
-                    <CardTitle>Enrollment Management</CardTitle>
-                    <CardDescription>Enroll users and track their progress for this module.</CardDescription>
+                    <CardTitle>Gerenciamento de Inscrições</CardTitle>
+                    <CardDescription>Inscreva usuários e acompanhe o progresso deles neste módulo.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <EnrollmentManager 
@@ -55,7 +55,7 @@ export default function TrainingDetailPage({
               />
             )}
             <CardHeader>
-              <CardTitle>About this training</CardTitle>
+              <CardTitle>Sobre este treinamento</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{training.description}</p>

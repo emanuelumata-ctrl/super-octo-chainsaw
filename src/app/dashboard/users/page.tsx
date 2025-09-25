@@ -15,8 +15,8 @@ export default function UsersPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Users"
-        description={`Manage the ${users.length} employees in the system.`}
+        title="Usuários"
+        description={`Gerencie os ${users.length} funcionários no sistema.`}
       />
       <Card>
         <CardContent>
@@ -24,7 +24,7 @@ export default function UsersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px]">Avatar</TableHead>
-                <TableHead>Name</TableHead>
+                <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
               </TableRow>
             </TableHeader>

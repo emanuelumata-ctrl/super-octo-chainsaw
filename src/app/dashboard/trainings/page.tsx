@@ -21,13 +21,13 @@ export default function TrainingsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Training Modules"
-        description={`Manage the ${trainings.length} available training modules.`}
+        title="Módulos de Treinamento"
+        description={`Gerencie os ${trainings.length} módulos de treinamento disponíveis.`}
       >
         <Button asChild>
           <Link href="/dashboard/trainings/new">
             <PlusCircle className="mr-2 h-4 w-4" />
-            New Training
+            Novo Treinamento
           </Link>
         </Button>
       </PageHeader>
@@ -36,11 +36,11 @@ export default function TrainingsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Enrolled Users</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Usuários Inscritos</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">Ações</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -60,7 +60,7 @@ export default function TrainingsPage() {
                       <Button asChild variant="ghost" size="icon">
                         <Link href={`/dashboard/trainings/${training.id}`}>
                           <Eye className="h-4 w-4" />
-                          <span className="sr-only">View Details</span>
+                          <span className="sr-only">Ver Detalhes</span>
                         </Link>
                       </Button>
                     </TableCell>

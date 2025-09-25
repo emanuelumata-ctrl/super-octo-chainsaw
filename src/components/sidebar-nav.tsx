@@ -10,12 +10,12 @@ import {
 import { cn } from '@/lib/utils';
 
 const links = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/dashboard/trainings', label: 'Trainings', icon: BookOpen },
-  { href: '/dashboard/users', label: 'Users', icon: Users },
+  { href: '/dashboard', label: 'Painel', icon: Home },
+  { href: '/dashboard/trainings', label: 'Treinamentos', icon: BookOpen },
+  { href: '/dashboard/users', label: 'Usuários', icon: Users },
   {
     href: '/dashboard/tools/summarizer',
-    label: 'AI Summarizer',
+    label: 'Resumidor IA',
     icon: Lightbulb,
   },
 ];

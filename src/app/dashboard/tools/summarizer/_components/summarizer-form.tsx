@@ -26,13 +26,13 @@ export function SummarizerForm() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Document to Summarize</CardTitle>
-          <CardDescription>Paste the content of your training document below.</CardDescription>
+          <CardTitle>Documento para Resumir</CardTitle>
+          <CardDescription>Cole o conteúdo do seu documento de treinamento abaixo.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Textarea
-              placeholder="Start pasting your document here... For best results, use at least 50 characters."
+              placeholder="Comece a colar seu documento aqui... Para melhores resultados, use pelo menos 50 caracteres."
               value={documentContent}
               onChange={(e) => setDocumentContent(e.target.value)}
               rows={10}
@@ -40,7 +40,7 @@ export function SummarizerForm() {
               disabled={isPending}
             />
             <Button type="submit" disabled={isPending || !documentContent}>
-              {isPending ? 'Summarizing...' : 'Generate Summary'}
+              {isPending ? 'Resumindo...' : 'Gerar Resumo'}
             </Button>
           </form>
         </CardContent>
@@ -49,7 +49,7 @@ export function SummarizerForm() {
       {(isPending || result.summary || result.error) && (
         <Card>
           <CardHeader>
-            <CardTitle>Summary</CardTitle>
+            <CardTitle>Resumo</CardTitle>
           </CardHeader>
           <CardContent>
             {isPending ? (
@@ -61,7 +61,7 @@ export function SummarizerForm() {
             ) : result.error ? (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>Erro</AlertTitle>
                     <AlertDescription>{result.error}</AlertDescription>
                 </Alert>
             ) : (

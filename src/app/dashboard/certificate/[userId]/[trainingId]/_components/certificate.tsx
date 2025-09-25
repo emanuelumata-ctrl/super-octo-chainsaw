@@ -12,7 +12,7 @@ export function Certificate({
   trainingTitle,
   completionDate,
 }: CertificateProps) {
-  const formattedDate = new Date(completionDate + 'T00:00:00').toLocaleDateString('en-US', {
+  const formattedDate = new Date(completionDate + 'T00:00:00').toLocaleDateString('pt-BR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -29,9 +29,9 @@ export function Certificate({
 
         <div>
             <p className="font-headline text-lg uppercase tracking-widest text-muted-foreground">
-            Certificate of Completion
+            Certificado de Conclusão
             </p>
-            <p className="mt-4 text-sm text-muted-foreground">This certificate is proudly presented to</p>
+            <p className="mt-4 text-sm text-muted-foreground">Este certificado é orgulhosamente apresentado a</p>
             <h1 className="mt-2 font-headline text-5xl font-bold text-primary">
             {userName}
             </h1>
@@ -39,7 +39,7 @@ export function Certificate({
 
         <div>
             <p className="text-sm text-muted-foreground">
-            For successfully completing the training module
+            Por concluir com sucesso o módulo de treinamento
             </p>
             <h2 className="mt-2 text-2xl font-semibold">
             {trainingTitle}
@@ -49,11 +49,11 @@ export function Certificate({
         <div className="w-full">
             <div className="mx-auto flex max-w-md items-center justify-between">
             <div className="w-1/2 border-t pt-2 text-left">
-                <p className="text-xs text-muted-foreground">Completion Date</p>
+                <p className="text-xs text-muted-foreground">Data de Conclusão</p>
                 <p className="text-sm font-semibold">{formattedDate}</p>
             </div>
             <div className="w-1/2 border-t pt-2 text-right">
-                <p className="text-xs text-muted-foreground">Signature</p>
+                <p className="text-xs text-muted-foreground">Assinatura</p>
                 <p className="font-serif text-lg italic text-primary">Skillscribe</p>
             </div>
             </div>

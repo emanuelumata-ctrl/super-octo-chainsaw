@@ -6,10 +6,10 @@ export type User = {
 };
 
 export type TrainingCategory =
-  | 'Leadership'
-  | 'Technical'
-  | 'Compliance'
-  | 'Soft Skills';
+  | 'Liderança'
+  | 'Técnico'
+  | 'Conformidade'
+  | 'Habilidades Interpessoais';
 
 export type Training = {
   id: string;
@@ -20,7 +20,7 @@ export type Training = {
   coverImageId: string;
 };
 
-export type EnrollmentStatus = 'Not Started' | 'In Progress' | 'Completed';
+export type EnrollmentStatus = 'Não Iniciado' | 'Em Progresso' | 'Concluído';
 
 export type Enrollment = {
   userId: string;

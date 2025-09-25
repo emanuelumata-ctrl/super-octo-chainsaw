@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <SidebarNav />
         </SidebarContent>
         <SidebarFooter>
-          {/* Footer content can go here */}
+          {/* O conteúdo do rodapé pode ir aqui */}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
@@ -52,12 +52,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuItem>Configurações</DropdownMenuItem>
+                <DropdownMenuItem>Suporte</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/">Sair</Link></DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
