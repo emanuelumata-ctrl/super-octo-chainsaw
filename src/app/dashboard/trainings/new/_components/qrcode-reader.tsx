@@ -22,7 +22,7 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
   const qrCodeImageUrl = 'https://firebasestorage.googleapis.com/v0/b/caminho-conhecimento.firebasestorage.app/o/IMG-20250617-WA0039(1).jpg?alt=media&token=05400221-2e4e-4d20-8a8f-39aa64eb4691';
 
   useEffect(() => {
-    if (isScanned) return;
+    if (isScanned || hasCameraPermission === false) return;
 
     let animationFrameId: number;
     let stream: MediaStream | null = null;
@@ -43,8 +43,12 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play();
-          animationFrameId = requestAnimationFrame(tick);
+          videoRef.current.onloadedmetadata = () => {
+            if(videoRef.current) {
+                videoRef.current.play();
+                animationFrameId = requestAnimationFrame(tick);
+            }
+          };
         }
       } catch (error) {
         console.error('Erro ao acessar a câmera:', error);
@@ -86,7 +90,9 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
                 }
             }
         }
-        animationFrameId = requestAnimationFrame(tick);
+        if (!isScanned) {
+          animationFrameId = requestAnimationFrame(tick);
+        }
     };
 
     getCameraPermission();
@@ -98,7 +104,7 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
         }
     }
 
-  }, [toast, onQrCodeScan, isScanned]);
+  }, [toast, onQrCodeScan, isScanned, hasCameraPermission]);
 
   return (
     <div className="space-y-4">
@@ -116,7 +122,7 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border">
             {isScanned ? (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex h-full w-full items-center justify-center">
                     <Image 
                         src={qrCodeImageUrl}
                         alt="QR Code de Validação"

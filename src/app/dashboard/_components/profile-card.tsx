@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Calendar, Briefcase } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { EditProfileForm } from './edit-profile-form';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface ProfileCardProps {
   user: User;
@@ -63,6 +63,12 @@ export function ProfileCard({ user }: ProfileCardProps) {
         </CardContent>
       </Card>
       <DialogContent>
+        <DialogHeader>
+            <DialogTitle>Editar Perfil</DialogTitle>
+            <DialogDescription>
+                Faça alterações no seu perfil aqui. Clique em salvar quando terminar.
+            </DialogDescription>
+        </DialogHeader>
         <EditProfileForm user={user} onFormSubmit={() => setIsDialogOpen(false)} />
       </DialogContent>
     </Dialog>

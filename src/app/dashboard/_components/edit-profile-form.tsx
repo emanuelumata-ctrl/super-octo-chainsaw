@@ -19,11 +19,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
 const UserProfileSchema = z.object({
@@ -66,77 +61,69 @@ export function EditProfileForm({ user, onFormSubmit }: EditProfileFormProps) {
 
 
   return (
-    <>
-        <DialogHeader>
-            <DialogTitle>Editar Perfil</DialogTitle>
-            <DialogDescription>
-                Faça alterações no seu perfil aqui. Clique em salvar quando terminar.
-            </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-        <form action={dispatch} className="space-y-4">
-            <input type="hidden" name="id" value={user.id} />
-            <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Nome Completo</FormLabel>
-                <FormControl>
-                    <Input {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="jobTitle"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Cargo</FormLabel>
-                <FormControl>
-                    <Input {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="admissionDate"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Data de Admissão</FormLabel>
-                <FormControl>
-                    <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="avatarUrl"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>URL da Foto de Perfil</FormLabel>
-                <FormControl>
-                    <Input {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            
-            {state.message && state.errors && (
-            <p className="text-sm font-medium text-destructive">{state.message}</p>
-            )}
+    <Form {...form}>
+    <form action={dispatch} className="space-y-4">
+        <input type="hidden" name="id" value={user.id} />
+        <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+            <FormItem>
+            <FormLabel>Nome Completo</FormLabel>
+            <FormControl>
+                <Input {...field} />
+            </FormControl>
+            <FormMessage />
+            </FormItem>
+        )}
+        />
+        <FormField
+        control={form.control}
+        name="jobTitle"
+        render={({ field }) => (
+            <FormItem>
+            <FormLabel>Cargo</FormLabel>
+            <FormControl>
+                <Input {...field} />
+            </FormControl>
+            <FormMessage />
+            </FormItem>
+        )}
+        />
+        <FormField
+        control={form.control}
+        name="admissionDate"
+        render={({ field }) => (
+            <FormItem>
+            <FormLabel>Data de Admissão</FormLabel>
+            <FormControl>
+                <Input type="date" {...field} />
+            </FormControl>
+            <FormMessage />
+            </FormItem>
+        )}
+        />
+        <FormField
+        control={form.control}
+        name="avatarUrl"
+        render={({ field }) => (
+            <FormItem>
+            <FormLabel>URL da Foto de Perfil</FormLabel>
+            <FormControl>
+                <Input {...field} />
+            </FormControl>
+            <FormMessage />
+            </FormItem>
+        )}
+        />
+        
+        {state.message && state.errors && (
+        <p className="text-sm font-medium text-destructive">{state.message}</p>
+        )}
 
-            <SubmitButton />
-        </form>
-        </Form>
-    </>
+        <SubmitButton />
+    </form>
+    </Form>
   );
 }
 
