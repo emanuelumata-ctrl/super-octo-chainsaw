@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,7 +42,7 @@ const trainingCategories: TrainingCategory[] = [
 
 export function TrainingForm() {
   const initialState = { message: '', errors: {} };
-  const [state, dispatch] = useFormState(createTraining, initialState);
+  const [state, dispatch] = useActionState(createTraining, initialState);
 
   const form = useForm<z.infer<typeof TrainingSchema>>({
     resolver: zodResolver(TrainingSchema),
