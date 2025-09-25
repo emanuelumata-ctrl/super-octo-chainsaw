@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation';
 
 import { trainings, enrollments, users } from './data';
 import type { EnrollmentStatus } from './types';
-import { summarizeDocument as summarizeDocumentFlow } from '@/ai/flows/summarize-training-documents';
 
 const TrainingSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -21,8 +20,7 @@ const TrainingSchema = z.object({
 
 
 export async function createTraining(prevState: any, formData: FormData) {
-  const data = Object.fromEntries(formData);
-  const validatedFields = TrainingSchema.safeParse(data);
+  const validatedFields = TrainingSchema.safeParse(Object.fromEntries(formData));
 
   if (!validatedFields.success) {
     return {
@@ -157,21 +155,6 @@ export async function updateEnrollmentStatus(
   }
   revalidatePath(`/dashboard/trainings/${trainingId}`);
 }
-
-export async function summarizeDocumentAction(documentContent: string) {
-  if (!documentContent || documentContent.trim().length < 50) {
-    return { summary: '', error: 'Forneça pelo menos 50 caracteres para resumir.' };
-  }
-
-  try {
-    const result = await summarizeDocumentFlow({ documentContent });
-    return { summary: result.summary, error: '' };
-  } catch (e) {
-    console.error(e);
-    return { summary: '', error: 'Falha ao gerar o resumo. Por favor, tente novamente.' };
-  }
-}
-
 
 export async function deleteTraining(trainingId: string) {
   try {

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
 import { trainings, enrollments } from '@/lib/data';
 import { deleteTraining, deleteAllTrainings } from '@/lib/actions';
-import { Eye, PlusCircle, Trash2 } from 'lucide-react';
+import { Eye, PlusCircle, Trash2, ClipboardList } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,6 +76,12 @@ export default function TrainingsPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <Button asChild variant="secondary">
+          <Link href="/dashboard/records">
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Meus Registros
+          </Link>
+        </Button>
         <Button asChild>
           <Link href="/dashboard/trainings/new">
             <PlusCircle className="mr-2 h-4 w-4" />
