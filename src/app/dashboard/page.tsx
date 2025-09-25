@@ -11,12 +11,21 @@ import {
   BookOpen,
   CheckCircle,
   Trophy,
+  Award
 } from 'lucide-react';
 import { trainings, users, enrollments } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ProfileCard } from './_components/profile-card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
   // Simulating a logged-in user. In a real app, this would come from an auth context.
@@ -105,62 +114,63 @@ export default function DashboardPage() {
 
           <div>
             <h2 className="mb-4 font-headline text-2xl font-semibold">
-              Meus Treinamentos
+              Meus Registros de Treinamento
             </h2>
-            {userEnrollments.length > 0 ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    {userEnrollments.map((enrollment) => {
-                      const training = getTrainingById(enrollment.trainingId);
-                      if (!training) return null;
+            <Card>
+                <CardContent className="pt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Treinamento</TableHead>
+                        <TableHead>Data de Conclusão</TableHead>
+                        <TableHead>Carga Horária</TableHead>
+                        <TableHead className="text-right">Certificado</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {completedEnrollments.length > 0 ? (
+                        completedEnrollments.map((enrollment) => {
+                          const training = getTrainingById(enrollment.trainingId);
+                          if (!training) return null;
 
-                      const statusColors: Record<
-                        typeof enrollment.status,
-                        'default' | 'secondary' | 'outline'
-                      > = {
-                        'Concluído': 'default',
-                        'Em Progresso': 'secondary',
-                        'Não Iniciado': 'outline',
-                      };
-
-                      return (
-                        <Link
-                          key={training.id}
-                          href={`/dashboard/trainings/${training.id}`}
-                          className="block"
-                        >
-                          <div className="flex items-center justify-between rounded-lg border p-4 transition-shadow hover:shadow-md">
-                            <div>
-                              <p className="font-semibold">{training.title}</p>
-                              <p className="text-sm text-muted-foreground">
-                                Por {training.trainerName}
-                              </p>
-                              {enrollment.status === 'Concluído' &&
-                                enrollment.completionDate && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Concluído em:{' '}
-                                    {new Date(
+                          return (
+                            <TableRow key={enrollment.trainingId}>
+                              <TableCell className="font-medium">
+                                <p>{training.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    por {training.trainerName}
+                                </p>
+                              </TableCell>
+                              <TableCell>
+                                {enrollment.completionDate
+                                  ? new Date(
                                       enrollment.completionDate + 'T00:00:00'
-                                    ).toLocaleDateString('pt-BR')}
-                                  </p>
-                                )}
-                            </div>
-                            <Badge variant={statusColors[enrollment.status]}>
-                              {enrollment.status}
-                            </Badge>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                                    ).toLocaleDateString('pt-BR')
+                                  : '-'}
+                              </TableCell>
+                              <TableCell>{training.trainingHours} horas</TableCell>
+                              <TableCell className="text-right">
+                                <Button asChild variant="ghost" size="icon">
+                                    <Link href={`/dashboard/certificate/${enrollment.userId}/${enrollment.trainingId}`}>
+                                        <Award className="h-4 w-4" />
+                                        <span className="sr-only">Ver Certificado</span>
+                                    </Link>
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="h-24 text-center">
+                            Nenhum treinamento concluído ainda.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
-            ) : (
-              <p className="text-muted-foreground">
-                Você ainda não está inscrito em nenhum treinamento.
-              </p>
-            )}
           </div>
         </div>
 
