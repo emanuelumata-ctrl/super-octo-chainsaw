@@ -1,17 +1,26 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import jsQR from 'jsqr';
 import { QrCode } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export function QrCodeReader() {
+interface QrCodeReaderProps {
+    onQrCodeScan: (data: any) => void;
+}
+
+export function QrCodeReader({ onQrCodeScan }: QrCodeReaderProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    let animationFrameId: number;
+    let stream: MediaStream | null = null;
+
     const getCameraPermission = async () => {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setHasCameraPermission(false);
@@ -23,11 +32,13 @@ export function QrCodeReader() {
         return;
       }
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         setHasCameraPermission(true);
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play();
+          animationFrameId = requestAnimationFrame(tick);
         }
       } catch (error) {
         console.error('Erro ao acessar a câmera:', error);
@@ -39,17 +50,64 @@ export function QrCodeReader() {
         });
       }
     };
+    
+    const tick = () => {
+        if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const context = canvas.getContext('2d');
+
+            if (context) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert',
+                });
+
+                if (code) {
+                    try {
+                        const data = JSON.parse(code.data);
+                        onQrCodeScan(data);
+                        toast({
+                            title: 'QR Code Lido com Sucesso!',
+                            description: 'Os dados do treinamento foram preenchidos.',
+                        });
+                        if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                        }
+                        cancelAnimationFrame(animationFrameId);
+                        return;
+                    } catch (e) {
+                         // Se não for JSON, trate como texto simples
+                         onQrCodeScan({ title: code.data });
+                         toast({
+                             title: 'QR Code Lido!',
+                             description: 'O título foi preenchido.',
+                         });
+                         if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                         }
+                         cancelAnimationFrame(animationFrameId);
+                         return;
+                    }
+                }
+            }
+        }
+        animationFrameId = requestAnimationFrame(tick);
+    };
 
     getCameraPermission();
     
     return () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
+        cancelAnimationFrame(animationFrameId);
+        if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
     }
 
-  }, [toast]);
+  }, [toast, onQrCodeScan]);
 
   return (
     <div className="space-y-4">
@@ -63,6 +121,7 @@ export function QrCodeReader() {
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
             <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
+            <canvas ref={canvasRef} className="hidden" />
             {hasCameraPermission === false && (
                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <Alert variant="destructive" className="max-w-sm">

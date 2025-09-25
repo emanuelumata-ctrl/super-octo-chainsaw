@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,7 +45,16 @@ const trainingCategories: TrainingCategory[] = [
   'Habilidades Interpessoais',
 ];
 
-export function TrainingForm() {
+interface TrainingFormProps {
+    initialData?: {
+        title?: string;
+        trainerName?: string;
+        trainingDate?: string;
+        trainingHours?: number;
+    } | null;
+}
+
+export function TrainingForm({ initialData }: TrainingFormProps) {
   const initialState = { message: '', errors: {} };
   const [state, dispatch] = useActionState(createTraining, initialState);
 
@@ -60,6 +69,15 @@ export function TrainingForm() {
       trainingHours: 1,
     },
   });
+  
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.title) form.setValue('title', initialData.title);
+      if (initialData.trainerName) form.setValue('trainerName', initialData.trainerName);
+      if (initialData.trainingDate) form.setValue('trainingDate', initialData.trainingDate);
+      if (initialData.trainingHours) form.setValue('trainingHours', initialData.trainingHours);
+    }
+  }, [initialData, form]);
 
   return (
     <Form {...form}>
