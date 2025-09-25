@@ -2,22 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
-import { QrCode } from 'lucide-react';
+import { QrCode, CheckCircle } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface QrCodeReaderProps {
-    onQrCodeScan: (data: any) => void;
+    onQrCodeScan: (data: string) => void;
+    isScanned: boolean;
 }
 
-export function QrCodeReader({ onQrCodeScan }: QrCodeReaderProps) {
+export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    if (isScanned) return;
+
     let animationFrameId: number;
     let stream: MediaStream | null = null;
 
@@ -67,61 +70,11 @@ export function QrCodeReader({ onQrCodeScan }: QrCodeReaderProps) {
                 });
 
                 if (code) {
-                    try {
-                        // Tenta analisar como JSON primeiro
-                        const jsonData = JSON.parse(code.data);
-                        onQrCodeScan(jsonData);
-                        toast({
-                            title: 'QR Code Lido com Sucesso!',
-                            description: 'Os dados do treinamento foram preenchidos.',
-                        });
-                    } catch (e) {
-                        // Se não for JSON, trate como texto com chave-valor
-                        const lines = code.data.split('\n');
-                        const data: any = {};
-                        const keyMapping: { [key: string]: string } = {
-                          'Título': 'title',
-                          'Nome do Treinador': 'trainerName',
-                          'Data de treinamento': 'trainingDate',
-                          'Horas de treinamento': 'trainingHours',
-                        };
-
-                        lines.forEach(line => {
-                            const parts = line.split(':');
-                            if (parts.length > 1) {
-                                const key = parts[0].trim();
-                                const value = parts.slice(1).join(':').trim();
-                                const mappedKey = keyMapping[key];
-                                if (mappedKey) {
-                                    if(mappedKey === 'trainingDate') {
-                                        // Formato esperado DD/MM/YYYY para YYYY-MM-DD
-                                        const dateParts = value.split('/');
-                                        if (dateParts.length === 3) {
-                                            data[mappedKey] = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                                        }
-                                    } else {
-                                        data[mappedKey] = value;
-                                    }
-                                }
-                            }
-                        });
-
-                        if (Object.keys(data).length > 0) {
-                            onQrCodeScan(data);
-                            toast({
-                                title: 'QR Code Lido com Sucesso!',
-                                description: 'Os dados do treinamento foram preenchidos.',
-                            });
-                        } else {
-                            // Fallback se o formato não for reconhecido
-                            onQrCodeScan({ title: code.data });
-                            toast({
-                                title: 'QR Code Lido!',
-                                description: 'O título foi preenchido, mas o formato completo não foi reconhecido.',
-                            });
-                        }
-                    }
-                    
+                    onQrCodeScan(code.data);
+                    toast({
+                        title: 'QR Code Validado!',
+                        description: 'Agora você pode registrar o treinamento.',
+                    });
                     if (stream) {
                         stream.getTracks().forEach(track => track.stop());
                     }
@@ -142,30 +95,46 @@ export function QrCodeReader({ onQrCodeScan }: QrCodeReaderProps) {
         }
     }
 
-  }, [toast, onQrCodeScan]);
+  }, [toast, onQrCodeScan, isScanned]);
 
   return (
     <div className="space-y-4">
         <div className="flex flex-col items-center gap-2 text-center">
-            <QrCode className="h-8 w-8 text-primary" />
-            <h3 className="text-lg font-medium">Escanear QR Code do Treinamento</h3>
+            {isScanned ? (
+                 <CheckCircle className="h-8 w-8 text-green-500" />
+            ) : (
+                <QrCode className="h-8 w-8 text-primary" />
+            )}
+            <h3 className="text-lg font-medium">
+                {isScanned ? 'QR Code Validado' : 'Validar com QR Code'}
+            </h3>
             <p className="text-sm text-muted-foreground">
-                Posicione o QR code do treinamento em frente à câmera.
+                {isScanned 
+                    ? 'O treinamento foi validado. Clique em "Registrar Treinamento" para concluir.'
+                    : 'Aponte a câmera para o QR code para validar e habilitar o registro.'}
             </p>
         </div>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-            <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
-            <canvas ref={canvasRef} className="hidden" />
-            {hasCameraPermission === false && (
-                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                    <Alert variant="destructive" className="max-w-sm">
-                        <AlertTitle>Câmera Indisponível</AlertTitle>
-                        <AlertDescription>
-                            Não foi possível acessar a câmera. Verifique as permissões no seu navegador.
-                        </AlertDescription>
-                    </Alert>
-                 </div>
+            {isScanned ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-green-500/10">
+                    <CheckCircle className="h-24 w-24 text-green-500 opacity-50" />
+                </div>
+            ) : (
+                <>
+                    <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
+                    <canvas ref={canvasRef} className="hidden" />
+                    {hasCameraPermission === false && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                            <Alert variant="destructive" className="max-w-sm">
+                                <AlertTitle>Câmera Indisponível</AlertTitle>
+                                <AlertDescription>
+                                    Não foi possível acessar a câmera. Verifique as permissões no seu navegador.
+                                </AlertDescription>
+                            </Alert>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     </div>

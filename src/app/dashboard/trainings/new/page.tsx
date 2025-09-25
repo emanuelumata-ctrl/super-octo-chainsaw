@@ -5,34 +5,37 @@ import { TrainingForm } from './_components/training-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { QrCodeReader } from './_components/qrcode-reader';
 import { useState } from 'react';
+import { Separator } from '@/components/ui/separator';
 
 export default function NewTrainingPage() {
-  const [qrData, setQrData] = useState(null);
+  const [isQrCodeScanned, setIsQrCodeScanned] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
 
-  const handleQrScan = (data: any) => {
-    setQrData(data);
+
+  const handleQrScan = (data: string) => {
+    setIsQrCodeScanned(true);
+    setQrCodeData(data);
   };
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Criar Novo Treinamento"
-        description="Preencha o formulário ou escaneie um QR code para adicionar um novo módulo."
+        title="Registrar Novo Treinamento"
+        description="Preencha o formulário e valide com o QR code para registrar."
       />
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <CardContent className="pt-6">
-            <TrainingForm initialData={qrData} />
+            <TrainingForm isQrCodeScanned={isQrCodeScanned} qrCodeData={qrCodeData} />
           </CardContent>
         </Card>
         
         <Card>
             <CardContent className="pt-6">
-                <QrCodeReader onQrCodeScan={handleQrScan} />
+                <QrCodeReader onQrCodeScan={handleQrScan} isScanned={isQrCodeScanned} />
             </CardContent>
         </Card>
       </div>
-
     </div>
   );
 }

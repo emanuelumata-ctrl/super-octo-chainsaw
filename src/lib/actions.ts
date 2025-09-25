@@ -16,6 +16,7 @@ const TrainingSchema = z.object({
     message: 'Data inválida.',
   }),
   trainingHours: z.coerce.number().min(1, 'As horas de treinamento devem ser pelo menos 1.'),
+  qrCodeData: z.string().optional(),
 });
 
 export async function createTraining(prevState: any, formData: FormData) {
@@ -25,6 +26,7 @@ export async function createTraining(prevState: any, formData: FormData) {
     trainerName: formData.get('trainerName'),
     trainingDate: formData.get('trainingDate'),
     trainingHours: formData.get('trainingHours'),
+    qrCodeData: formData.get('qrCodeData'),
   });
 
   if (!validatedFields.success) {
@@ -33,15 +35,35 @@ export async function createTraining(prevState: any, formData: FormData) {
       message: 'A validação falhou. Por favor, verifique os campos.',
     };
   }
+  
+  // TODO: Add QR Code validation logic against a database or external service
+  if (!validatedFields.data.qrCodeData) {
+      return {
+          message: 'Validação do QR Code falhou.',
+      }
+  }
 
   try {
     const newTraining = {
       id: `trn-${Date.now()}`,
-      ...validatedFields.data,
+      title: validatedFields.data.title,
+      description: validatedFields.data.description,
+      trainerName: validatedFields.data.trainerName,
+      trainingDate: validatedFields.data.trainingDate,
+      trainingHours: validatedFields.data.trainingHours,
       contentUrl: '#',
-      coverImageId: 'technical-onboarding', // Imagem padrão para novos treinamentos
+      coverImageId: 'technical-onboarding',
     };
     trainings.push(newTraining);
+
+    // Automatically enroll the current user (user-1) as "Completed"
+    enrollments.push({
+      userId: 'user-1', // Assuming user-1 is the logged-in user
+      trainingId: newTraining.id,
+      status: 'Concluído',
+      completionDate: new Date().toISOString().split('T')[0],
+    });
+
   } catch (error) {
     return {
       message: 'Erro no Banco de Dados: Falha ao Criar Treinamento.',
@@ -49,7 +71,8 @@ export async function createTraining(prevState: any, formData: FormData) {
   }
 
   revalidatePath('/dashboard/trainings');
-  redirect('/dashboard/trainings');
+  revalidatePath('/dashboard/records');
+  redirect('/dashboard/records');
 }
 
 const UserProfileSchema = z.object({
@@ -98,7 +121,6 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
   }
 
   revalidatePath('/dashboard');
-  // We won't redirect, so the modal can close and show the updated data.
   return { message: 'Perfil atualizado com sucesso!', errors: {} };
 }
 
@@ -109,7 +131,6 @@ export async function updateUserEnrollment(
   isEnrolled: boolean
 ) {
   if (isEnrolled) {
-    // Para remover a inscrição (un-enroll)
     const index = enrollments.findIndex(
       (e) => e.trainingId === trainingId && e.userId === userId
     );
@@ -117,7 +138,6 @@ export async function updateUserEnrollment(
       enrollments.splice(index, 1);
     }
   } else {
-    // Para adicionar a inscrição (enroll)
     if (users.find((u) => u.id === userId)) {
       enrollments.push({
         trainingId,

@@ -1,5 +1,5 @@
 'use client';
-import { Award, BookOpen, Home, Lightbulb, Users } from 'lucide-react';
+import { Award, BookOpen, Home, Lightbulb, Users, ClipboardList } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -7,11 +7,11 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
 
 const links = [
   { href: '/dashboard', label: 'Painel', icon: Home },
   { href: '/dashboard/trainings', label: 'Treinamentos', icon: BookOpen },
+  { href: '/dashboard/records', label: 'Meus Registros', icon: ClipboardList },
   { href: '/dashboard/seals', label: 'Selos', icon: Award },
   { href: '/dashboard/users', label: 'Usuários', icon: Users },
   {

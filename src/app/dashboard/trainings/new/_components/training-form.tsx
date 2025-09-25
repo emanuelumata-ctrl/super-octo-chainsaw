@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
@@ -28,18 +27,15 @@ const TrainingSchema = z.object({
     message: 'Data inválida.',
   }),
   trainingHours: z.coerce.number().min(1, 'As horas de treinamento devem ser pelo menos 1.'),
+  qrCodeData: z.string().optional(),
 });
 
 interface TrainingFormProps {
-    initialData?: {
-        title?: string;
-        trainerName?: string;
-        trainingDate?: string;
-        trainingHours?: number;
-    } | null;
+  isQrCodeScanned: boolean;
+  qrCodeData: string | null;
 }
 
-export function TrainingForm({ initialData }: TrainingFormProps) {
+export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps) {
   const initialState = { message: '', errors: {} };
   const [state, dispatch] = useActionState(createTraining, initialState);
 
@@ -53,19 +49,18 @@ export function TrainingForm({ initialData }: TrainingFormProps) {
       trainingHours: 1,
     },
   });
-  
-  useEffect(() => {
-    if (initialData) {
-      if (initialData.title) form.setValue('title', initialData.title);
-      if (initialData.trainerName) form.setValue('trainerName', initialData.trainerName);
-      if (initialData.trainingDate) form.setValue('trainingDate', initialData.trainingDate);
-      if (initialData.trainingHours) form.setValue('trainingHours', initialData.trainingHours);
-    }
-  }, [initialData, form]);
 
   return (
     <Form {...form}>
-      <form action={dispatch} className="space-y-6">
+      <form 
+        action={(formData) => {
+            if (qrCodeData) {
+                formData.append('qrCodeData', qrCodeData);
+            }
+            dispatch(formData);
+        }} 
+        className="space-y-6"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -138,22 +133,22 @@ export function TrainingForm({ initialData }: TrainingFormProps) {
           )}
         />
         
-        {state.message && (
+        {state?.message && (
           <p className="text-sm font-medium text-destructive">{state.message}</p>
         )}
 
-        <SubmitButton />
+        <SubmitButton isQrCodeScanned={isQrCodeScanned} />
       </form>
     </Form>
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ isQrCodeScanned }: { isQrCodeScanned: boolean }) {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? 'Criando...' : 'Criar Treinamento'}
+    <Button type="submit" disabled={pending || !isQrCodeScanned} className="w-full sm:w-auto">
+      {pending ? 'Registrando...' : 'Registrar Treinamento'}
     </Button>
   );
 }
