@@ -21,14 +21,8 @@ const TrainingSchema = z.object({
 
 
 export async function createTraining(prevState: any, formData: FormData) {
-  const validatedFields = TrainingSchema.safeParse({
-    title: formData.get('title'),
-    description: formData.get('description'),
-    trainerName: formData.get('trainerName'),
-    trainingDate: formData.get('trainingDate'),
-    trainingHours: formData.get('trainingHours'),
-    qrCodeData: formData.get('qrCodeData'),
-  });
+  const data = Object.fromEntries(formData);
+  const validatedFields = TrainingSchema.safeParse(data);
 
   if (!validatedFields.success) {
     return {
@@ -48,7 +42,7 @@ export async function createTraining(prevState: any, formData: FormData) {
       contentUrl: '#',
       coverImageId: 'technical-onboarding',
     };
-    trainings.push(newTraining);
+    trainings.unshift(newTraining);
 
     // Automatically enroll the current user (user-1) as "Completed"
     enrollments.push({
@@ -66,7 +60,7 @@ export async function createTraining(prevState: any, formData: FormData) {
 
   revalidatePath('/dashboard/trainings');
   revalidatePath('/dashboard/records');
-  redirect('/dashboard/records');
+  redirect('/dashboard/trainings');
 }
 
 const UserProfileSchema = z.object({
@@ -141,6 +135,7 @@ export async function updateUserEnrollment(
     }
   }
   revalidatePath(`/dashboard/trainings/${trainingId}`);
+  revalidatePath('/dashboard/trainings');
 }
 
 export async function updateEnrollmentStatus(
@@ -175,4 +170,43 @@ export async function summarizeDocumentAction(documentContent: string) {
     console.error(e);
     return { summary: '', error: 'Falha ao gerar o resumo. Por favor, tente novamente.' };
   }
+}
+
+
+export async function deleteTraining(trainingId: string) {
+  try {
+    const index = trainings.findIndex(t => t.id === trainingId);
+    if (index > -1) {
+      trainings.splice(index, 1);
+      // Also remove associated enrollments
+      const enrollmentsToRemove = enrollments.filter(e => e.trainingId === trainingId);
+      enrollmentsToRemove.forEach(e => {
+        const enrollmentIndex = enrollments.indexOf(e);
+        if (enrollmentIndex > -1) {
+          enrollments.splice(enrollmentIndex, 1);
+        }
+      });
+    }
+  } catch (error) {
+    return {
+      message: 'Erro no Banco de Dados: Falha ao apagar o treinamento.',
+    };
+  }
+  revalidatePath('/dashboard/trainings');
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/records');
+}
+
+export async function deleteAllTrainings() {
+    try {
+        trainings.length = 0;
+        enrollments.length = 0;
+    } catch (error) {
+        return {
+        message: 'Erro no Banco de Dados: Falha ao apagar todos os treinamentos.',
+        };
+    }
+    revalidatePath('/dashboard/trainings');
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/records');
 }

@@ -5,7 +5,7 @@ import { PlaceHolderImages } from './placeholder-images';
 const findImage = (id: string) =>
   PlaceHolderImages.find((img) => img.id === id)?.imageUrl ?? '';
 
-export const users: User[] = [
+export let users: User[] = [
   {
     id: 'user-1',
     name: 'Ana Silva',
@@ -48,7 +48,7 @@ export const users: User[] = [
   },
 ];
 
-export const trainings: Training[] = [
+export let trainings: Training[] = [
   {
     id: 'trn-1',
     title: 'Princípios de Liderança',
