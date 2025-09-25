@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { QrCode, CheckCircle } from 'lucide-react';
+import Image from 'next/image';
 
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -17,6 +18,8 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
+  
+  const qrCodeImageUrl = 'https://firebasestorage.googleapis.com/v0/b/caminho-conhecimento.firebasestorage.app/o/IMG-20250617-WA0039(1).jpg?alt=media&token=05400221-2e4e-4d20-8a8f-39aa64eb4691';
 
   useEffect(() => {
     if (isScanned) return;
@@ -118,7 +121,13 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
             {isScanned ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-green-500/10">
-                    <CheckCircle className="h-24 w-24 text-green-500 opacity-50" />
+                    <Image 
+                        src={qrCodeImageUrl}
+                        alt="QR Code de Validação"
+                        fill
+                        className="object-contain p-4 opacity-50"
+                    />
+                     <CheckCircle className="absolute h-24 w-24 text-green-500 opacity-75" />
                 </div>
             ) : (
                 <>
