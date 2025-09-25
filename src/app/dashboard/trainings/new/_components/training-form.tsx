@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 
 import { createTraining } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
@@ -50,17 +51,29 @@ export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps)
     },
   });
 
+  useEffect(() => {
+    if (qrCodeData) {
+      form.setValue('qrCodeData', qrCodeData);
+    }
+  }, [qrCodeData, form]);
+
   return (
     <Form {...form}>
       <form 
-        action={(formData) => {
-            if (qrCodeData) {
-                formData.append('qrCodeData', qrCodeData);
-            }
-            dispatch(formData);
-        }} 
+        action={dispatch}
         className="space-y-6"
       >
+        <FormField
+          control={form.control}
+          name="qrCodeData"
+          render={({ field }) => (
+            <FormItem className="hidden">
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="title"
