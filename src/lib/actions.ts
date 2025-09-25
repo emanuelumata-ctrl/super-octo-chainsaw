@@ -46,6 +46,57 @@ export async function createTraining(prevState: any, formData: FormData) {
   redirect('/dashboard/trainings');
 }
 
+const UserProfileSchema = z.object({
+  id: z.string(),
+  name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+  jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
+  admissionDate: z.string(),
+  avatarUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
+});
+
+export async function updateUserProfile(prevState: any, formData: FormData) {
+  const validatedFields = UserProfileSchema.safeParse({
+    id: formData.get('id'),
+    name: formData.get('name'),
+    jobTitle: formData.get('jobTitle'),
+    admissionDate: formData.get('admissionDate'),
+    avatarUrl: formData.get('avatarUrl'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'A validação falhou. Por favor, verifique os campos.',
+    };
+  }
+
+  try {
+    const userIndex = users.findIndex(u => u.id === validatedFields.data.id);
+    if (userIndex === -1) {
+      throw new Error('Usuário não encontrado.');
+    }
+    
+    const user = users[userIndex];
+    users[userIndex] = {
+      ...user,
+      name: validatedFields.data.name,
+      jobTitle: validatedFields.data.jobTitle,
+      admissionDate: validatedFields.data.admissionDate,
+      avatarUrl: validatedFields.data.avatarUrl,
+    };
+
+  } catch (error) {
+    return {
+      message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
+    };
+  }
+
+  revalidatePath('/dashboard');
+  // We won't redirect, so the modal can close and show the updated data.
+  return { message: 'Perfil atualizado com sucesso!', errors: {} };
+}
+
+
 export async function updateUserEnrollment(
   trainingId: string,
   userId: string,

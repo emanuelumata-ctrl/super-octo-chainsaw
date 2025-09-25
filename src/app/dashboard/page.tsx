@@ -4,7 +4,6 @@ import Link from 'next/link';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -12,17 +11,12 @@ import {
   BookOpen,
   CheckCircle,
   Trophy,
-  Edit,
-  User as UserIcon,
-  Calendar,
-  Briefcase,
 } from 'lucide-react';
 import { trainings, users, enrollments } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { ProfileCard } from './_components/profile-card';
 
 export default function DashboardPage() {
   // Simulating a logged-in user. In a real app, this would come from an auth context.
@@ -56,8 +50,7 @@ export default function DashboardPage() {
       : 0;
 
   const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
-  const formattedAdmissionDate = new Date(user.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR');
-
+  
   return (
     <div className="space-y-8">
       <PageHeader
@@ -172,42 +165,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Meu Perfil</CardTitle>
-              <Button variant="ghost" size="icon">
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">Editar Perfil</span>
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col items-center space-y-4">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback>
-                    {user.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold">{user.name}</h3>
-                  <p className="text-muted-foreground">{user.email}</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>{user.jobTitle}</span>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>Admitido em: {formattedAdmissionDate}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ProfileCard user={user} />
         </div>
       </div>
     </div>
