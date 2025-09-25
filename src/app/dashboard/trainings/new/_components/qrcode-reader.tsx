@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
-import { QrCode, CheckCircle } from 'lucide-react';
+import { QrCode } from 'lucide-react';
 import Image from 'next/image';
 
 import { useToast } from '@/hooks/use-toast';
@@ -103,11 +103,7 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
   return (
     <div className="space-y-4">
         <div className="flex flex-col items-center gap-2 text-center">
-            {isScanned ? (
-                 <CheckCircle className="h-8 w-8 text-green-500" />
-            ) : (
-                <QrCode className="h-8 w-8 text-primary" />
-            )}
+            <QrCode className="h-8 w-8 text-primary" />
             <h3 className="text-lg font-medium">
                 {isScanned ? 'QR Code Validado' : 'Validar com QR Code'}
             </h3>
@@ -118,7 +114,7 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
             </p>
         </div>
 
-        <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+        <div className="relative aspect-video w-full overflow-hidden rounded-md border">
             {isScanned ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                     <Image 
