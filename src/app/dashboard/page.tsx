@@ -113,10 +113,10 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <h2 className="mb-4 font-headline text-2xl font-semibold">
-              Meus Registros de Treinamento
-            </h2>
             <Card>
+                <CardHeader>
+                    <CardTitle>Meus Registros de Treinamento</CardTitle>
+                </CardHeader>
                 <CardContent className="pt-0">
                   <Table>
                     <TableHeader>
