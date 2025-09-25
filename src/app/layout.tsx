@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Skillscribe',
-  description: 'Aplicativo de Gestão de Treinamento de Funcionários',
+  title: 'Passaporte FES',
+  description: 'Seu passaporte para o conhecimento na FES',
 };
 
 export default function RootLayout({
