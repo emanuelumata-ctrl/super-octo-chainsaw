@@ -10,22 +10,37 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface QrCodeReaderProps {
     onQrCodeScan: (data: string) => void;
-    isScanned: boolean;
+    isScanned?: boolean;
+    scannedImageUrl?: string;
+    title?: string;
+    description?: string;
+    scannedDescription?: string;
 }
 
-export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
+export function QrCodeReader({ 
+    onQrCodeScan, 
+    isScanned = false, 
+    scannedImageUrl,
+    title = "Leitor de QR Code",
+    description = "Aponte a câmera para o QR code.",
+    scannedDescription = "QR Code lido com sucesso!"
+}: QrCodeReaderProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
-  
-  const qrCodeImageUrl = 'https://firebasestorage.googleapis.com/v0/b/caminho-conhecimento.firebasestorage.app/o/IMG-20250617-WA0039(1).jpg?alt=media&token=05400221-2e4e-4d20-8a8f-39aa64eb4691';
 
   useEffect(() => {
-    if (isScanned || hasCameraPermission === false) return;
+    setIsClient(true);
+  }, []);
+  
+  useEffect(() => {
+    if (!isClient || hasCameraPermission === false) return;
 
     let animationFrameId: number;
     let stream: MediaStream | null = null;
+    let isScanning = true;
 
     const getCameraPermission = async () => {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -45,7 +60,7 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
           videoRef.current.srcObject = stream;
           videoRef.current.onloadedmetadata = () => {
             if(videoRef.current) {
-                videoRef.current.play();
+                videoRef.current.play().catch(err => console.error("Falha ao iniciar o vídeo:", err));
                 animationFrameId = requestAnimationFrame(tick);
             }
           };
@@ -62,6 +77,8 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
     };
     
     const tick = () => {
+        if (!isScanning) return;
+
         if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
             const video = videoRef.current;
             const canvas = canvasRef.current;
@@ -77,20 +94,26 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
                 });
 
                 if (code && code.data) {
+                    isScanning = false;
                     onQrCodeScan(code.data);
                     toast({
-                        title: 'QR Code Validado!',
-                        description: 'Agora você pode registrar o treinamento.',
+                        title: 'QR Code Lido!',
+                        description: 'Ação registrada com sucesso.',
                     });
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
+                     // Se não for reutilizável, paramos o stream
+                    if (scannedImageUrl) {
+                      if (stream) {
+                          stream.getTracks().forEach(track => track.stop());
+                      }
+                      cancelAnimationFrame(animationFrameId);
+                      return;
                     }
-                    cancelAnimationFrame(animationFrameId);
-                    return;
+                    // Se for reutilizável (como na página de selos), esperamos um pouco e continuamos
+                    setTimeout(() => { isScanning = true; }, 2000);
                 }
             }
         }
-        if (!isScanned) {
+        if (isScanning) {
           animationFrameId = requestAnimationFrame(tick);
         }
     };
@@ -98,38 +121,43 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
     getCameraPermission();
     
     return () => {
+        isScanning = false;
         cancelAnimationFrame(animationFrameId);
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
     }
 
-  }, [toast, onQrCodeScan, isScanned, hasCameraPermission]);
+  }, [toast, onQrCodeScan, isClient, hasCameraPermission, scannedImageUrl]);
+
+  if (!isClient) {
+    return null; 
+  }
 
   return (
     <div className="space-y-4">
         <div className="flex flex-col items-center gap-2 text-center">
             <QrCode className="h-8 w-8 text-primary" />
             <h3 className="text-lg font-medium">
-                {isScanned ? 'QR Code Validado' : 'Validar com QR Code'}
+                {isScanned ? 'Validado' : title}
             </h3>
             <p className="text-sm text-muted-foreground">
                 {isScanned 
-                    ? 'O treinamento foi validado. Clique em "Registrar Treinamento" para concluir.'
-                    : 'Aponte a câmera para o QR code para validar e habilitar o registro.'}
+                    ? scannedDescription
+                    : description}
             </p>
         </div>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border">
-            {isScanned ? (
-                <div className="flex h-full w-full items-center justify-center">
+            {isScanned && scannedImageUrl ? (
+                 <div className="flex h-full w-full items-center justify-center p-4">
                     <Image 
-                        src={qrCodeImageUrl}
+                        src={scannedImageUrl}
                         alt="QR Code de Validação"
                         fill
-                        className="object-contain p-4"
+                        className="object-contain"
                     />
-                </div>
+                 </div>
             ) : (
                 <>
                     <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
