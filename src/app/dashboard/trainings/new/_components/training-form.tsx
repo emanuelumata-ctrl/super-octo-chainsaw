@@ -58,13 +58,28 @@ export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps)
     }
   }, [qrCodeData, form]);
 
+  const onSubmit = (formData: FormData) => {
+    const data = Object.fromEntries(formData.entries());
+    const completeFormData = new FormData();
+
+    Object.keys(data).forEach(key => {
+        completeFormData.append(key, data[key] as string);
+    });
+
+    if (qrCodeData) {
+      completeFormData.set('qrCodeData', qrCodeData);
+    }
+    
+    dispatch(completeFormData);
+  };
+
+
   return (
     <Form {...form}>
       <form 
-        action={dispatch}
+        action={onSubmit}
         className="space-y-6"
       >
-        <input type="hidden" {...form.register('qrCodeData')} />
         <FormField
           control={form.control}
           name="title"
@@ -141,7 +156,9 @@ export function TrainingForm({ isQrCodeScanned, qrCodeData }: TrainingFormProps)
           <p className="text-sm font-medium text-destructive">{state.message}</p>
         )}
         
-        <FormMessage>{form.formState.errors.qrCodeData?.message}</FormMessage>
+        {form.formState.errors.qrCodeData?.message && (
+            <p className="text-sm font-medium text-destructive">{form.formState.errors.qrCodeData?.message}</p>
+        )}
 
         <SubmitButton isQrCodeScanned={isQrCodeScanned} />
       </form>
