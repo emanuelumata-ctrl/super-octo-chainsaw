@@ -19,9 +19,6 @@ const TrainingSchema = z.object({
   qrCodeData: z.string().optional(),
 });
 
-// O dado esperado do QR Code para validação
-const VALIDATION_QR_DATA = "SKILLSCRIBE_VALIDATION_TOKEN";
-
 
 export async function createTraining(prevState: any, formData: FormData) {
   const validatedFields = TrainingSchema.safeParse({
@@ -40,7 +37,7 @@ export async function createTraining(prevState: any, formData: FormData) {
     };
   }
   
-  if (validatedFields.data.qrCodeData !== VALIDATION_QR_DATA) {
+  if (!validatedFields.data.qrCodeData) {
       return {
           message: 'Validação do QR Code falhou. Tente escanear novamente.',
       }

@@ -12,9 +12,6 @@ interface QrCodeReaderProps {
     isScanned: boolean;
 }
 
-// O dado esperado do QR Code para validação
-const VALIDATION_QR_DATA = "SKILLSCRIBE_VALIDATION_TOKEN";
-
 export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,11 +66,10 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    // Habilitar a tentativa de inversão para ler mais tipos de QR codes
                     inversionAttempts: 'attemptBoth',
                 });
 
-                if (code && code.data === VALIDATION_QR_DATA) {
+                if (code && code.data) {
                     onQrCodeScan(code.data);
                     toast({
                         title: 'QR Code Validado!',
