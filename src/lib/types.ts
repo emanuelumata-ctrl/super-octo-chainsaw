@@ -20,6 +20,9 @@ export type Training = {
   category: TrainingCategory;
   contentUrl: string; // Could be video link, doc path, etc.
   coverImageId: string;
+  trainerName: string;
+  trainingDate: string;
+  trainingHours: number;
 };
 
 export type EnrollmentStatus = 'Não Iniciado' | 'Em Progresso' | 'Concluído';

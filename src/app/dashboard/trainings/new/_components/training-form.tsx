@@ -31,6 +31,11 @@ const TrainingSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
   description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
   category: z.enum(['Liderança', 'Técnico', 'Conformidade', 'Habilidades Interpessoais']),
+  trainerName: z.string().min(3, 'O nome do treinador deve ter pelo menos 3 caracteres.'),
+  trainingDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
+    message: 'Data inválida.',
+  }),
+  trainingHours: z.coerce.number().min(1, 'As horas de treinamento devem ser pelo menos 1.'),
 });
 
 const trainingCategories: TrainingCategory[] = [
@@ -50,6 +55,9 @@ export function TrainingForm() {
       title: '',
       description: '',
       category: 'Técnico',
+      trainerName: '',
+      trainingDate: '',
+      trainingHours: 1,
     },
   });
 
@@ -93,6 +101,47 @@ export function TrainingForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="trainerName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome do Treinador</FormLabel>
+              <FormControl>
+                <Input placeholder="ex: Jane Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="trainingDate"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Data do Treinamento</FormLabel>
+                <FormControl>
+                    <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="trainingHours"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Horas de Treinamento</FormLabel>
+                <FormControl>
+                    <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
         <FormField
           control={form.control}
           name="description"

@@ -57,6 +57,9 @@ export const trainings: Training[] = [
     category: 'Liderança',
     contentUrl: '#',
     coverImageId: 'leadership-training',
+    trainerName: 'Carlos Andrade',
+    trainingDate: '2024-05-20',
+    trainingHours: 8,
   },
   {
     id: 'trn-2',
@@ -66,6 +69,9 @@ export const trainings: Training[] = [
     category: 'Técnico',
     contentUrl: '#',
     coverImageId: 'technical-onboarding',
+    trainerName: 'Fernanda Lima',
+    trainingDate: '2024-06-10',
+    trainingHours: 16,
   },
   {
     id: 'trn-3',
@@ -75,6 +81,9 @@ export const trainings: Training[] = [
     category: 'Conformidade',
     contentUrl: '#',
     coverImageId: 'compliance-basics',
+    trainerName: 'Roberto Almeida',
+    trainingDate: '2024-07-01',
+    trainingHours: 4,
   },
   {
     id: 'trn-4',
@@ -84,6 +93,9 @@ export const trainings: Training[] = [
     category: 'Habilidades Interpessoais',
     contentUrl: '#',
     coverImageId: 'communication-skills',
+    trainerName: 'Sofia Bernardes',
+    trainingDate: '2024-08-15',
+    trainingHours: 6,
   },
 ];
 
