@@ -19,6 +19,10 @@ const TrainingSchema = z.object({
   qrCodeData: z.string().optional(),
 });
 
+// O dado esperado do QR Code para validação
+const VALIDATION_QR_DATA = "SKILLSCRIBE_VALIDATION_TOKEN";
+
+
 export async function createTraining(prevState: any, formData: FormData) {
   const validatedFields = TrainingSchema.safeParse({
     title: formData.get('title'),
@@ -36,10 +40,9 @@ export async function createTraining(prevState: any, formData: FormData) {
     };
   }
   
-  // TODO: Add QR Code validation logic against a database or external service
-  if (!validatedFields.data.qrCodeData) {
+  if (validatedFields.data.qrCodeData !== VALIDATION_QR_DATA) {
       return {
-          message: 'Validação do QR Code falhou.',
+          message: 'Validação do QR Code falhou. Tente escanear novamente.',
       }
   }
 
@@ -130,15 +133,15 @@ export async function updateUserEnrollment(
   userId: string,
   isEnrolled: boolean
 ) {
+  const index = enrollments.findIndex(
+    (e) => e.trainingId === trainingId && e.userId === userId
+  );
   if (isEnrolled) {
-    const index = enrollments.findIndex(
-      (e) => e.trainingId === trainingId && e.userId === userId
-    );
     if (index > -1) {
       enrollments.splice(index, 1);
     }
   } else {
-    if (users.find((u) => u.id === userId)) {
+    if (users.find((u) => u.id === userId) && index === -1) {
       enrollments.push({
         trainingId,
         userId,

@@ -5,7 +5,6 @@ import { TrainingForm } from './_components/training-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { QrCodeReader } from './_components/qrcode-reader';
 import { useState } from 'react';
-import { Separator } from '@/components/ui/separator';
 
 export default function NewTrainingPage() {
   const [isQrCodeScanned, setIsQrCodeScanned] = useState(false);
