@@ -120,14 +120,13 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
             {isScanned ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-green-500/10">
+                <div className="absolute inset-0 flex items-center justify-center">
                     <Image 
                         src={qrCodeImageUrl}
                         alt="QR Code de Validação"
                         fill
-                        className="object-contain p-4 opacity-50"
+                        className="object-contain p-4"
                     />
-                     <CheckCircle className="absolute h-24 w-24 text-green-500 opacity-75" />
                 </div>
             ) : (
                 <>
