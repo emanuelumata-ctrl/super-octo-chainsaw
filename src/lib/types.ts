@@ -3,6 +3,8 @@ export type User = {
   name: string;
   email: string;
   avatarUrl: string;
+  jobTitle: string;
+  admissionDate: string;
 };
 
 export type TrainingCategory =
