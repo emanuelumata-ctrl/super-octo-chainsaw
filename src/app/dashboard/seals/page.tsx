@@ -75,7 +75,7 @@ export default function SealsPage() {
                                   src={qrCodeImageUrl}
                                   alt={`Selo ${sealId} Desbloqueado`}
                                   fill
-                                  className="object-cover"
+                                  className="object-cover scale-125"
                                 />
                                 <Button
                                   variant="destructive"
