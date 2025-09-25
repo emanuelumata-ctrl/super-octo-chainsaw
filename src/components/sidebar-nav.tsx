@@ -24,6 +24,7 @@ export function SidebarNav() {
         <SidebarMenuItem key={link.href}>
           <SidebarMenuButton
             asChild
+            size="default"
             isActive={pathname.startsWith(link.href) && (link.href !== '/dashboard' || pathname === '/dashboard')}
             tooltip={link.label}
           >
