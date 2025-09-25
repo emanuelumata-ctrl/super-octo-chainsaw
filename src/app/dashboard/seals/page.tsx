@@ -22,7 +22,7 @@ export default function SealsPage() {
   };
 
   const qrCodeImageUrl =
-    'https://firebasestorage.googleapis.com/v0/b/caminho-conhecimento.firebasestorage.app/o/IMG-20250617-WA0039(1).jpg?alt=media&token=05400221-2e4e-4d20-8a8f-39aa64eb4691';
+    'https://firebasestorage.googleapis.com/v0/b/caminho-conhecimento.firebasestorage.app/o/1_20250617_121812_0000.jpg?alt=media&token=a93802b3-5b0f-4150-a3a8-a71d1a3dafc3';
 
   return (
     <div className="space-y-8">
