@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { QrCodeReader } from '@/components/qrcode-reader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash } from 'lucide-react';
+import { Trash, X } from 'lucide-react';
 
 export default function SealsPage() {
   const totalSeals = 20;
@@ -17,7 +17,7 @@ export default function SealsPage() {
     setUnlockedSeals((prevUnlocked) => {
       const nextSealId = prevUnlocked.length + 1;
       if (nextSealId <= totalSeals && !prevUnlocked.includes(nextSealId)) {
-        return [...prevUnlocked, nextSealId];
+        return [...prevUnlocked, nextSealId].sort((a, b) => a - b);
       }
       return prevUnlocked;
     });
@@ -25,6 +25,10 @@ export default function SealsPage() {
 
   const handleClearSeals = () => {
     setUnlockedSeals([]);
+  };
+
+  const handleClearSingleSeal = (sealIdToRemove: number) => {
+    setUnlockedSeals((prevUnlocked) => prevUnlocked.filter(id => id !== sealIdToRemove));
   };
 
   const qrCodeImageUrl =
@@ -54,7 +58,7 @@ export default function SealsPage() {
                     return (
                       <div
                         key={sealId}
-                        className={`relative aspect-square flex flex-col items-center justify-center rounded-full border-4 transition-all ${
+                        className={`group relative aspect-square flex flex-col items-center justify-center rounded-full border-4 transition-all ${
                           isUnlocked
                             ? 'border-primary bg-primary/10'
                             : 'border-dashed bg-card'
@@ -66,12 +70,22 @@ export default function SealsPage() {
                           }`}
                         >
                           {isUnlocked ? (
-                             <Image
-                                src={qrCodeImageUrl}
-                                alt={`Selo ${sealId} Desbloqueado`}
-                                fill
-                                className="object-cover"
-                              />
+                             <>
+                               <Image
+                                  src={qrCodeImageUrl}
+                                  alt={`Selo ${sealId} Desbloqueado`}
+                                  fill
+                                  className="object-cover"
+                                />
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-0 right-0 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                  onClick={() => handleClearSingleSeal(sealId)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                             </>
                           ) : (
                             <span className="text-3xl font-bold text-muted-foreground">
                               {sealId}
