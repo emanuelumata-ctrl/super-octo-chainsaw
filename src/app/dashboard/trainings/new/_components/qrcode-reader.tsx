@@ -69,7 +69,8 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: 'dontInvert',
+                    // Habilitar a tentativa de inversão para ler mais tipos de QR codes
+                    inversionAttempts: 'attemptBoth',
                 });
 
                 if (code && code.data === VALIDATION_QR_DATA) {
@@ -128,11 +129,12 @@ export function QrCodeReader({ onQrCodeScan, isScanned }: QrCodeReaderProps) {
                     <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
                     <canvas ref={canvasRef} className="hidden" />
                     {hasCameraPermission === false && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
                             <Alert variant="destructive" className="max-w-sm">
+                                <QrCode className="h-4 w-4" />
                                 <AlertTitle>Câmera Indisponível</AlertTitle>
                                 <AlertDescription>
-                                    Não foi possível acessar a câmera. Verifique as permissões no seu navegador.
+                                    Não foi possível acessar a câmera. Verifique as permissões no seu navegador e recarregue a página.
                                 </AlertDescription>
                             </Alert>
                         </div>
