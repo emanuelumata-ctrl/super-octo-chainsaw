@@ -54,7 +54,7 @@ export function Certificate({
             </div>
             <div className="w-1/2 border-t pt-2 text-right">
                 <p className="text-xs text-muted-foreground">Assinatura</p>
-                <p className="font-serif text-lg italic text-primary">Skillscribe</p>
+                <p className="font-serif text-lg italic text-primary">SkillScribe</p>
             </div>
             </div>
         </div>
