@@ -82,12 +82,6 @@ const UserProfileSchema = z.object({
 });
   
 export async function updateUserProfile(prevState: any, formData: FormData) {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
-        // This should theoretically not happen if the form page is protected
-        return { message: 'Erro de autenticação. Por favor, faça login novamente.', errors: {} };
-    }
-
     const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -96,8 +90,17 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
             message: 'A validação falhou. Por favor, verifique os campos.',
         };
     }
-
+    
     const { id, avatar, ...userData } = validatedFields.data;
+    const sessionUserId = await getUserIdFromSession();
+    
+    // Use the ID from the form if available, otherwise use the one from the session.
+    const userId = id || sessionUserId;
+
+    if (!userId) {
+        return { message: 'Erro de autenticação. ID de usuário não encontrado.', errors: {} };
+    }
+
     let avatarUrl;
 
     try {
