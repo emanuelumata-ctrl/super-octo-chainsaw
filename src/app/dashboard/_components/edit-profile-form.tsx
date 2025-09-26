@@ -59,14 +59,14 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
 
 
   useEffect(() => {
-    if (state.message && !state.errors) {
+    if (state && state.message && !state.errors) {
         toast({ title: 'Sucesso!', description: state.message });
         onFormSubmit();
         // For new users, a page reload might be necessary to fetch server-side data
         if (isNewUser) {
             window.location.reload();
         }
-    } else if (state.message && state.errors) {
+    } else if (state && state.message && state.errors) {
         toast({ title: 'Erro', description: state.message, variant: 'destructive' });
     }
   }, [state, onFormSubmit, toast, isNewUser]);
