@@ -46,7 +46,7 @@ export async function createTraining(prevState: any, formData: FormData) {
     enrollments.push({
       userId: 'user-1', // Assuming user-1 is the logged-in user
       trainingId: newTraining.id,
-      status: 'Concluído',
+      status: 'Completed',
       completionDate: new Date().toISOString().split('T')[0],
     });
 
@@ -147,7 +147,7 @@ export async function updateEnrollmentStatus(
 
   if (enrollment) {
     enrollment.status = status;
-    if (status === 'Concluído') {
+    if (status === 'Concluído' || status === 'Completed') {
       enrollment.completionDate = new Date().toISOString().split('T')[0];
     } else {
       delete enrollment.completionDate;
@@ -175,7 +175,7 @@ export async function deleteTraining(enrollmentId: { userId: string, trainingId:
 
 export async function deleteAllTrainings(userId: string) {
     try {
-       const userEnrollments = enrollments.filter(e => e.userId === userId);
+       const userEnrollments = enrollments.filter(e => e.userId === userId && (e.status === 'Concluído' || e.status === 'Completed'));
        userEnrollments.forEach(e => {
          const enrollmentIndex = enrollments.indexOf(e);
          if (enrollmentIndex > -1) {

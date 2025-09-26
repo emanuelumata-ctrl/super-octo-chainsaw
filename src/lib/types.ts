@@ -18,7 +18,7 @@ export type Training = {
   trainingHours: number;
 };
 
-export type EnrollmentStatus = 'Não Iniciado' | 'Em Progresso' | 'Concluído';
+export type EnrollmentStatus = 'Não Iniciado' | 'Em Progresso' | 'Concluído' | 'Completed';
 
 export type Enrollment = {
   userId: string;
