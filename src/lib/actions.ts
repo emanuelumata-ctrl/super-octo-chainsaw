@@ -3,8 +3,9 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 
 import type { EnrollmentStatus, Training, User } from './types';
@@ -69,35 +70,49 @@ const UserProfileSchema = z.object({
     email: z.string().email('Por favor, insira um email válido.'),
     jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
     admissionDate: z.string(),
-    avatarUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
-  });
+    avatar: z.any().optional(),
+});
   
-  export async function updateUserProfile(prevState: any, formData: FormData) {
-      const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
-  
-      if (!validatedFields.success) {
-          return {
-              errors: validatedFields.error.flatten().fieldErrors,
-              message: 'A validação falhou. Por favor, verifique os campos.',
-          };
-      }
-  
-      const { id, ...userData } = validatedFields.data;
-  
-      try {
-          const userRef = doc(db, 'users', id);
-          // Use setDoc with merge: true to create or update the document
-          await setDoc(userRef, userData, { merge: true });
-      } catch (error) {
-          console.error("Firebase error:", error);
-          return {
-              message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
-          };
-      }
-  
-      revalidatePath('/dashboard');
-      return { message: 'Perfil atualizado com sucesso!', errors: {} };
-  }
+export async function updateUserProfile(prevState: any, formData: FormData) {
+    const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'A validação falhou. Por favor, verifique os campos.',
+        };
+    }
+
+    const { id, avatar, ...userData } = validatedFields.data;
+    let avatarUrl;
+
+    try {
+        const userRef = doc(db, 'users', id);
+
+        if (avatar && avatar.size > 0) {
+            const storageRef = ref(storage, `avatars/${id}/${avatar.name}`);
+            const snapshot = await uploadBytes(storageRef, avatar);
+            avatarUrl = await getDownloadURL(snapshot.ref);
+        }
+
+        const dataToUpdate: Partial<User> = { ...userData };
+        if (avatarUrl) {
+            dataToUpdate.avatarUrl = avatarUrl;
+        }
+
+        // Use setDoc with merge: true to create or update the document
+        await setDoc(userRef, dataToUpdate, { merge: true });
+
+    } catch (error) {
+        console.error("Firebase error:", error);
+        return {
+            message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
+        };
+    }
+
+    revalidatePath('/dashboard');
+    return { message: 'Perfil atualizado com sucesso!', errors: {} };
+}
 
 
 export async function updateUserEnrollment(
@@ -148,7 +163,16 @@ export async function updateEnrollmentStatus(
                 : null
         };
         await updateDoc(enrollmentDoc.ref, updateData);
+    } else if (status === 'Concluído' || status === 'Completed') {
+        // Se não houver inscrição, mas o status for para concluído, criamos uma nova.
+        await addDoc(collection(db, "enrollments"), {
+            trainingId,
+            userId,
+            status,
+            completionDate: new Date().toISOString().split('T')[0],
+        });
     }
+
     revalidatePath(`/dashboard/trainings/${trainingId}`);
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/trainings');

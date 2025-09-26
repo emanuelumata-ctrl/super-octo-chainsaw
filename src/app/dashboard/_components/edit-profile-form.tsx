@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,7 +28,7 @@ const UserProfileSchema = z.object({
   email: z.string().email('Por favor, insira um email válido.'),
   jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
   admissionDate: z.string(),
-  avatarUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
+  avatar: z.any().optional(),
 });
 
 interface EditProfileFormProps {
@@ -49,9 +50,11 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
       email: user.email || '',
       jobTitle: user.jobTitle || '',
       admissionDate: user.admissionDate || '',
-      avatarUrl: user.avatarUrl || '',
     },
   });
+
+  const avatarRef = form.register("avatar");
+
 
   useEffect(() => {
     if (state.message && !state.errors) {
@@ -120,17 +123,20 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
         )}
         />
         <FormField
-        control={form.control}
-        name="avatarUrl"
-        render={({ field }) => (
-            <FormItem>
-            <FormLabel>URL da Foto de Perfil</FormLabel>
-            <FormControl>
-                <Input {...field} />
-            </FormControl>
-            <FormMessage />
-            </FormItem>
-        )}
+            control={form.control}
+            name="avatar"
+            render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Foto de Perfil</FormLabel>
+                    <FormControl>
+                        <Input type="file" accept="image/*" {...avatarRef} />
+                    </FormControl>
+                    <FormDescription>
+                        Procure uma imagem no seu dispositivo.
+                    </FormDescription>
+                    <FormMessage />
+                </FormItem>
+            )}
         />
         
         {state.message && state.errors && (
