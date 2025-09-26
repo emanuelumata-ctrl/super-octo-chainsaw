@@ -1,11 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 
 import type { User } from '@/lib/types';
 import { updateUserProfile } from '@/lib/actions';
@@ -21,6 +20,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const UserProfileSchema = z.object({
   id: z.string().optional(),
@@ -40,8 +41,7 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditProfileFormProps) {
   const { toast } = useToast();
-  const initialState = { message: '', errors: {} };
-  const [state, dispatch] = useActionState(updateUserProfile, initialState);
+  const [errorState, setErrorState] = useState<{ message: string | null }>({ message: null });
 
   const form = useForm<z.infer<typeof UserProfileSchema>>({
     resolver: zodResolver(UserProfileSchema),
@@ -57,24 +57,23 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
 
   const avatarRef = form.register("avatar");
 
+  const handleFormAction = async (formData: FormData) => {
+    const result = await updateUserProfile(null, formData);
 
-  useEffect(() => {
-    if (state && state.message && !state.errors) {
-        toast({ title: 'Sucesso!', description: state.message });
-        onFormSubmit();
-        // For new users, a page reload might be necessary to fetch server-side data
-        if (isNewUser) {
-            window.location.reload();
-        }
-    } else if (state && state.message && state.errors) {
-        toast({ title: 'Erro', description: state.message, variant: 'destructive' });
+    if (result && result.message && result.errors) {
+      setErrorState({ message: result.message });
+    } else if (result && result.message) {
+      toast({ title: 'Sucesso!', description: result.message });
+      onFormSubmit();
+      if (isNewUser) {
+          window.location.reload();
+      }
     }
-  }, [state, onFormSubmit, toast, isNewUser]);
-
+  };
 
   return (
     <Form {...form}>
-    <form action={dispatch} className="space-y-4">
+    <form action={handleFormAction} className="space-y-4">
         {user.id && <input type="hidden" name="id" value={user.id} />}
         <FormField
         control={form.control}
@@ -144,7 +143,7 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
         <FormField
             control={form.control}
             name="avatar"
-            render={({ field }) => (
+            render={() => (
                 <FormItem>
                     <FormLabel>Foto de Perfil</FormLabel>
                     <FormControl>
@@ -158,8 +157,12 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
             )}
         />
         
-        {state?.message && state.errors && (
-        <p className="text-sm font-medium text-destructive">{state.message}</p>
+        {errorState.message && (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Erro ao Salvar</AlertTitle>
+                <AlertDescription>{errorState.message}</AlertDescription>
+            </Alert>
         )}
 
         <SubmitButton isNewUser={isNewUser} />
