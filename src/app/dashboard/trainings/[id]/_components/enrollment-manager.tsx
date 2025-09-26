@@ -43,13 +43,10 @@ export function EnrollmentManager({
   const handleEnrollmentChange = (user: User, isEnrolled: boolean) => {
     startTransition(async () => {
         await updateUserEnrollment(trainingId, user.id, isEnrolled);
-        // After the server action, we either add or remove the enrollment from the local state to reflect the change.
         if (isEnrolled) {
-            // If they were enrolled, we remove them.
             setEnrollments(prev => prev.filter(e => e.userId !== user.id));
         } else {
-            // If they were not enrolled, we add them with a default status.
-            setEnrollments(prev => [...prev, { userId: user.id, trainingId, status: 'Não Iniciado' }]);
+            setEnrollments(prev => [...prev, { userId: user.id, trainingId, status: 'Não Iniciado', completionDate: null }]);
         }
     });
 };
@@ -64,7 +61,7 @@ export function EnrollmentManager({
             ? {
                 ...e,
                 status,
-                completionDate: status === 'Concluído' || status === 'Completed' ? new Date().toISOString().split('T')[0] : undefined,
+                completionDate: (status === 'Concluído' || status === 'Completed') ? new Date().toISOString().split('T')[0] : null,
               }
             : e
         )

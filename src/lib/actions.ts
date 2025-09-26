@@ -122,6 +122,7 @@ export async function updateUserEnrollment(
                 trainingId,
                 userId,
                 status: 'Não Iniciado',
+                completionDate: null,
             });
         }
     }
@@ -140,18 +141,17 @@ export async function updateEnrollmentStatus(
 
     if (!querySnapshot.empty) {
         const enrollmentDoc = querySnapshot.docs[0];
-        const updateData: { status: EnrollmentStatus; completionDate?: string } = { status };
-        if (status === 'Concluído' || status === 'Completed') {
-            updateData.completionDate = new Date().toISOString().split('T')[0];
-        } else {
-            // Firestore can't delete a field directly with update. To remove it, you'd have to read the doc, create a new object without the field, and set() it.
-            // For simplicity, we set it to an empty string.
-            updateData.completionDate = ''; 
-        }
+        const updateData: { status: EnrollmentStatus; completionDate: string | null } = { 
+            status,
+            completionDate: (status === 'Concluído' || status === 'Completed') 
+                ? new Date().toISOString().split('T')[0] 
+                : null
+        };
         await updateDoc(enrollmentDoc.ref, updateData);
     }
     revalidatePath(`/dashboard/trainings/${trainingId}`);
     revalidatePath('/dashboard');
+    revalidatePath('/dashboard/trainings');
 }
 
 export async function deleteTraining({ userId, trainingId }: { userId: string; trainingId: string }) {
