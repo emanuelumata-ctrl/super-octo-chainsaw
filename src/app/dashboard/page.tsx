@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
   const userEnrollments = enrollments.filter((e) => e.userId === user.id);
   const completedEnrollments = userEnrollments.filter(
-    (e) => e.status === 'Concluído'
+    (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
   const inProgressEnrollments = userEnrollments.filter(
     (e) => e.status === 'Em Progresso'

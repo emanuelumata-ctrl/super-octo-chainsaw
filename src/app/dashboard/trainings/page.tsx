@@ -33,7 +33,7 @@ export default function TrainingsPage() {
   let [isPending, startTransition] = useTransition();
 
   const userEnrollments = enrollments.filter(
-    (e) => e.userId === loggedInUserId && e.status === 'Concluído'
+    (e) => e.userId === loggedInUserId && (e.status === 'Concluído' || e.status === 'Completed')
   );
 
   const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
