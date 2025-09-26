@@ -351,10 +351,11 @@ export async function handleLogin(prevState: any, formData: FormData) {
       userId = userDocRef.id;
     } else {
         const userDoc = querySnapshot.docs[0];
+        // Check if the provided name matches the one in the database (case-insensitive)
         if (userDoc.data().name.toLowerCase() !== name.toLowerCase()) {
             return { error: 'A matrícula já está em uso com um nome diferente.' };
         }
-        userId = userDoc.id;
+        userId = userDoc.id; // Correctly assign userId for existing user
     }
 
     cookies().set(SESSION_COOKIE_NAME, userId, {
