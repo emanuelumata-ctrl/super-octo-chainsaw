@@ -10,7 +10,7 @@ import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import { db, storage } from '@/lib/firebase';
 import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 
-import type { EnrollmentStatus, Training, User } from './types';
+import type { Enrollment, EnrollmentStatus, Training, User } from './types';
 
 // Helper function to get user ID from session cookie (SERVER-SIDE ONLY)
 async function getUserIdFromSession(): Promise<string | null> {
@@ -115,7 +115,7 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
         };
     }
     
-    // Use the ID from the session as the source of truth.
+    // Use the ID from the form or session as the source of truth.
     const { id, avatar, ...userData } = validatedFields.data;
     const userId = id || sessionUserId;
 
@@ -330,12 +330,12 @@ export async function handleLogin(prevState: any, formData: FormData) {
   }
   
   const { name, registration } = validatedFields.data;
+  let userId: string;
 
   try {
     const usersRef = collection(db, 'users');
     let q = query(usersRef, where('registration', '==', registration));
     let querySnapshot = await getDocs(q);
-    let userId: string;
 
     if (querySnapshot.empty) {
       // User does not exist, create a new one with minimal info
