@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { cookies } from 'next/headers';
+import { SESSION_COOKIE_NAME } from '@/lib/constants';
 
 import { db, storage } from '@/lib/firebase';
 import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
@@ -23,57 +25,68 @@ const TrainingSchema = z.object({
 
 
 export async function createTraining(prevState: any, formData: FormData) {
-  const validatedFields = TrainingSchema.safeParse(Object.fromEntries(formData));
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+        return redirect('/');
+    }
 
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'A validação falhou. Por favor, verifique os campos.',
-    };
-  }
+    const validatedFields = TrainingSchema.safeParse(Object.fromEntries(formData));
 
-  try {
-    const newTraining = {
-      title: validatedFields.data.title,
-      description: validatedFields.data.description,
-      trainerName: validatedFields.data.trainerName,
-      trainingDate: validatedFields.data.trainingDate,
-      trainingHours: validatedFields.data.trainingHours,
-      contentUrl: '#',
-      coverImageId: 'technical-onboarding',
-    };
-    const trainingDocRef = await addDoc(collection(db, "trainings"), newTraining);
+    if (!validatedFields.success) {
+        return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: 'A validação falhou. Por favor, verifique os campos.',
+        };
+    }
 
-    // Automatically enroll the current user (user-1) as "Completed"
-    await addDoc(collection(db, "enrollments"), {
-      userId: 'user-1', // Assuming user-1 is the logged-in user
-      trainingId: trainingDocRef.id,
-      status: 'Completed',
-      completionDate: new Date().toISOString().split('T')[0],
-    });
+    try {
+        const newTraining = {
+        title: validatedFields.data.title,
+        description: validatedFields.data.description,
+        trainerName: validatedFields.data.trainerName,
+        trainingDate: validatedFields.data.trainingDate,
+        trainingHours: validatedFields.data.trainingHours,
+        contentUrl: '#',
+        coverImageId: 'technical-onboarding',
+        };
+        const trainingDocRef = await addDoc(collection(db, "trainings"), newTraining);
+
+        // Automatically enroll the current user as "Completed"
+        await addDoc(collection(db, "enrollments"), {
+            userId: userId,
+            trainingId: trainingDocRef.id,
+            status: 'Completed',
+            completionDate: new Date().toISOString().split('T')[0],
+        });
 
 
-  } catch (error) {
-    return {
-      message: 'Erro no Banco de Dados: Falha ao Criar Treinamento.',
-    };
-  }
+    } catch (error) {
+        return {
+        message: 'Erro no Banco de Dados: Falha ao Criar Treinamento.',
+        };
+    }
 
-  revalidatePath('/dashboard/trainings');
-  revalidatePath('/dashboard');
-  redirect('/dashboard/trainings');
+    revalidatePath('/dashboard/trainings');
+    revalidatePath('/dashboard');
+    redirect('/dashboard/trainings');
 }
 
 const UserProfileSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
     email: z.string().email('Por favor, insira um email válido.'),
     jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
     admissionDate: z.string(),
+    registration: z.string().min(1, 'A matrícula é obrigatória.'),
     avatar: z.any().optional(),
 });
   
 export async function updateUserProfile(prevState: any, formData: FormData) {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+        return redirect('/');
+    }
+
     const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -87,10 +100,10 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
     let avatarUrl;
 
     try {
-        const userRef = doc(db, 'users', id);
+        const userRef = doc(db, 'users', userId);
 
         if (avatar && avatar.size > 0) {
-            const storageRef = ref(storage, `avatars/${id}/${avatar.name}`);
+            const storageRef = ref(storage, `avatars/${userId}/${avatar.name}`);
             const snapshot = await uploadBytes(storageRef, avatar);
             avatarUrl = await getDownloadURL(snapshot.ref);
         }
@@ -163,13 +176,13 @@ export async function updateEnrollmentStatus(
                 : null
         };
         await updateDoc(enrollmentDoc.ref, updateData);
-    } else if (status === 'Concluído' || status === 'Completed') {
-        // Se não houver inscrição, mas o status for para concluído, criamos uma nova.
+    } else if (status === 'Concluído' || status === 'Completed' || status === 'Em Progresso' || status === 'Não Iniciado') {
+        // If no enrollment exists, create one
         await addDoc(collection(db, "enrollments"), {
             trainingId,
             userId,
             status,
-            completionDate: new Date().toISOString().split('T')[0],
+            completionDate: (status === 'Concluído' || status === 'Completed') ? new Date().toISOString().split('T')[0] : null,
         });
     }
 
@@ -178,7 +191,12 @@ export async function updateEnrollmentStatus(
     revalidatePath('/dashboard/trainings');
 }
 
-export async function deleteTraining({ userId, trainingId }: { userId: string; trainingId: string }) {
+
+export async function deleteTraining(trainingId: string) {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+        return;
+    }
     const q = query(collection(db, "enrollments"), where("userId", "==", userId), where("trainingId", "==", trainingId));
     const querySnapshot = await getDocs(q);
     
@@ -194,7 +212,11 @@ export async function deleteTraining({ userId, trainingId }: { userId: string; t
     revalidatePath('/dashboard');
 }
 
-export async function deleteAllTrainings(userId: string) {
+export async function deleteAllTrainings() {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+        return;
+    }
     const q = query(collection(db, "enrollments"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
     
@@ -222,14 +244,13 @@ export async function getTrainings(): Promise<Training[]> {
     return trainingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Training));
 }
 
-export async function getEnrollments(userId?: string) {
-    let enrollmentsCol = collection(db, 'enrollments');
-    let q;
-    if (userId) {
-        q = query(enrollmentsCol, where('userId', '==', userId));
-    } else {
-        q = query(enrollmentsCol);
+export async function getEnrollments() {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+        return [];
     }
+    const enrollmentsCol = collection(db, 'enrollments');
+    const q = query(enrollmentsCol, where('userId', '==', userId));
     const enrollmentSnapshot = await getDocs(q);
     return enrollmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
@@ -250,6 +271,14 @@ export async function getEnrollmentsByTrainingId(trainingId: string) {
     return enrollmentSnapshot.docs.map(doc => doc.data());
 }
 
+export async function getAuthenticatedUser(): Promise<User | null> {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return null;
+    }
+    return await getUserById(userId);
+}
+
 export async function getUserById(id: string): Promise<User | null> {
     try {
         const userDocRef = doc(db, 'users', id);
@@ -262,4 +291,65 @@ export async function getUserById(id: string): Promise<User | null> {
         console.error("Error fetching user by ID:", error);
         return null;
     }
+}
+
+
+const LoginSchema = z.object({
+  name: z.string().trim().min(1, { message: 'O nome é obrigatório.' }),
+  registration: z.string().trim().min(1, { message: 'A matrícula é obrigatória.' }),
+});
+
+async function getUserIdFromSession(): Promise<string | null> {
+    const cookieStore = cookies();
+    const session = cookieStore.get(SESSION_COOKIE_NAME);
+    if (session?.value) {
+        // In a real app, you'd decrypt and verify the session value.
+        // For this prototype, we'll just use the raw value as the user ID.
+        return session.value;
+    }
+    return null;
+}
+
+export async function handleLogin(prevState: any, formData: FormData) {
+  const validatedFields = LoginSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    return { error: 'Nome e matrícula são obrigatórios.' };
+  }
+  
+  const { name, registration } = validatedFields.data;
+
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('name', '==', name), where('registration', '==', registration));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return { error: 'Nome ou matrícula inválidos.' };
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userId = userDoc.id;
+
+    // In a real app, you would create a secure, signed, and encrypted session.
+    // For this prototype, we'll store the user ID directly in a cookie.
+    cookies().set(SESSION_COOKIE_NAME, userId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: '/',
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    return { error: 'Ocorreu um erro no servidor. Tente novamente.' };
+  }
+
+  redirect('/dashboard');
+}
+
+
+export async function handleLogout() {
+    cookies().delete(SESSION_COOKIE_NAME);
+    redirect('/');
 }

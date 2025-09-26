@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import {
   Sidebar,
   SidebarContent,
@@ -9,22 +8,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { UserProfile } from './_components/user-profile';
 import { Logo } from '@/components/logo';
 import { SidebarNav } from '@/components/sidebar-nav';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const adminAvatar = PlaceHolderImages.find((img) => img.id === 'admin-avatar');
-
   return (
     <SidebarProvider>
       <Sidebar>
@@ -44,22 +33,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <SidebarTrigger />
           </div>
           <div className="ml-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className="h-9 w-9 cursor-pointer">
-                  {adminAvatar && <AvatarImage src={adminAvatar.imageUrl} alt="Admin" />}
-                  <AvatarFallback>AD</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Configurações</DropdownMenuItem>
-                <DropdownMenuItem>Suporte</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild><Link href="/">Sair</Link></DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserProfile />
           </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>

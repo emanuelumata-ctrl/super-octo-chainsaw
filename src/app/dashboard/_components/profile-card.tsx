@@ -10,17 +10,17 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Calendar, Briefcase, UserPlus } from 'lucide-react';
+import { Edit, Calendar, Briefcase } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { EditProfileForm } from './edit-profile-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProfileCardProps {
   user: User | null;
-  loggedInUserId: string;
 }
 
-export function ProfileCard({ user, loggedInUserId }: ProfileCardProps) {
+export function ProfileCard({ user }: ProfileCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   if (!user) {
@@ -35,11 +35,12 @@ export function ProfileCard({ user, loggedInUserId }: ProfileCardProps) {
             <CardContent>
                 <EditProfileForm 
                     user={{ 
-                        id: loggedInUserId, 
+                        id: '', // Will be set by session
                         name: '', 
                         email: '', 
                         jobTitle: '', 
-                        admissionDate: '', 
+                        admissionDate: '',
+                        registration: '',
                         avatarUrl: 'https://picsum.photos/seed/1/200/200' 
                     }} 
                     isNewUser={true}
@@ -49,8 +50,30 @@ export function ProfileCard({ user, loggedInUserId }: ProfileCardProps) {
         </Card>
     )
   }
+  
+  if (!user.id) {
+    return (
+        <Card>
+            <CardHeader><CardTitle>Meu Perfil</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex flex-col items-center space-y-4">
+                    <Skeleton className="h-24 w-24 rounded-full" />
+                    <div className="text-center w-full space-y-2">
+                        <Skeleton className="h-6 w-3/4 mx-auto" />
+                        <Skeleton className="h-4 w-1/2 mx-auto" />
+                    </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
 
-  const formattedAdmissionDate = new Date(user.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR');
+
+  const formattedAdmissionDate = user.admissionDate ? new Date(user.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não definida';
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -83,7 +106,7 @@ export function ProfileCard({ user, loggedInUserId }: ProfileCardProps) {
           <div className="space-y-2 text-sm">
             <div className="flex items-center">
               <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-              <span>{user.jobTitle}</span>
+              <span>{user.jobTitle || 'Cargo não definido'}</span>
             </div>
             <div className="flex items-center">
               <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />

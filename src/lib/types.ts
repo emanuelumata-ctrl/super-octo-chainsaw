@@ -2,6 +2,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  registration: string;
   avatarUrl: string;
   jobTitle: string;
   admissionDate: string;

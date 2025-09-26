@@ -30,7 +30,6 @@ import type { Enrollment, Training } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TrainingsPage() {
-  const loggedInUserId = 'user-1';
   const [isPending, startTransition] = useTransition();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [trainings, setTrainings] = useState<Training[]>([]);
@@ -40,7 +39,7 @@ export default function TrainingsPage() {
     async function fetchData() {
       setLoading(true);
       const [enrollmentData, trainingData] = await Promise.all([
-        getEnrollments(loggedInUserId),
+        getEnrollments(),
         getTrainings(),
       ]);
       setEnrollments(enrollmentData as Enrollment[]);
@@ -50,7 +49,7 @@ export default function TrainingsPage() {
     fetchData();
   }, []);
 
-  const userEnrollments = enrollments.filter(
+  const completedEnrollments = enrollments.filter(
     (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
 
@@ -58,18 +57,18 @@ export default function TrainingsPage() {
 
   const handleDelete = (trainingId: string) => {
     startTransition(async () => {
-      await deleteTraining({ userId: loggedInUserId, trainingId });
+      await deleteTraining(trainingId);
       // Refetch data after deletion
-      const enrollmentData = await getEnrollments(loggedInUserId);
+      const enrollmentData = await getEnrollments();
       setEnrollments(enrollmentData as Enrollment[]);
     });
   };
 
   const handleDeleteAll = () => {
     startTransition(async () => {
-      await deleteAllTrainings(loggedInUserId);
+      await deleteAllTrainings();
        // Refetch data after deletion
-       const enrollmentData = await getEnrollments(loggedInUserId);
+       const enrollmentData = await getEnrollments();
        setEnrollments(enrollmentData as Enrollment[]);
     });
   };
@@ -83,7 +82,7 @@ export default function TrainingsPage() {
         <div className="flex gap-2">
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={isPending || userEnrollments.length === 0}>
+                    <Button variant="destructive" disabled={isPending || completedEnrollments.length === 0}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Excluir Tudo
                     </Button>
@@ -134,8 +133,8 @@ export default function TrainingsPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : userEnrollments.length > 0 ? (
-                userEnrollments.map((enrollment) => {
+              ) : completedEnrollments.length > 0 ? (
+                completedEnrollments.map((enrollment) => {
                   const training = getTrainingById(enrollment.trainingId);
                   if (!training) return null;
 

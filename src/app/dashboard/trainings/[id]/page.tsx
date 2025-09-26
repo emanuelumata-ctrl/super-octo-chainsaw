@@ -5,21 +5,21 @@ import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getEnrollmentsByTrainingId, getTrainingById, getUsers } from '@/lib/actions';
+import { getAuthenticatedUser, getEnrollmentsByTrainingId, getTrainingById } from '@/lib/actions';
 import type { Training } from '@/lib/types';
 import { BadgeCheck } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-async function getTrainingData(id: string): Promise<{ training: Training | null, enrollments: any[], users: any[] }> {
+async function getTrainingData(id: string): Promise<{ training: Training | null, enrollments: any[], user: any }> {
     const training = await getTrainingById(id);
     if (!training) {
-        return { training: null, enrollments: [], users: [] };
+        return { training: null, enrollments: [], user: null };
     }
     const enrollments = await getEnrollmentsByTrainingId(id);
-    const users = await getUsers();
-    return { training, enrollments, users };
+    const user = await getAuthenticatedUser();
+    return { training, enrollments, user };
 }
 
 export default async function TrainingDetailPage({
@@ -27,14 +27,13 @@ export default async function TrainingDetailPage({
 }: {
   params: { id: string };
 }) {
-  const { training, enrollments, users } = await getTrainingData(params.id);
+  const { training, enrollments, user } = await getTrainingData(params.id);
 
-  if (!training) {
+  if (!training || !user) {
     notFound();
   }
   
-  const loggedInUserId = 'user-1';
-  const userEnrollment = enrollments.find(e => e.userId === loggedInUserId && e.trainingId === params.id);
+  const userEnrollment = enrollments.find(e => e.userId === user.id && e.trainingId === params.id);
   const isCompleted = userEnrollment?.status === 'Completed' || userEnrollment?.status === 'Concluído';
 
   const image = PlaceHolderImages.find((p) => p.id === training.coverImageId);

@@ -27,11 +27,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import type { Enrollment, Training, User } from '@/lib/types';
-import { getEnrollments, getTrainings, getUserById } from '@/lib/actions';
+import { getEnrollments, getTrainings, getAuthenticatedUser } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
-  const loggedInUserId = 'user-1';
   const [user, setUser] = useState<User | null>(null);
   const [userEnrollments, setUserEnrollments] = useState<Enrollment[]>([]);
   const [allTrainings, setAllTrainings] = useState<Training[]>([]);
@@ -41,14 +40,17 @@ export default function DashboardPage() {
     async function fetchData() {
       setLoading(true);
       try {
-        const [userData, enrollmentsData, trainingsData] = await Promise.all([
-          getUserById(loggedInUserId),
-          getEnrollments(loggedInUserId),
-          getTrainings()
-        ]);
+        const userData = await getAuthenticatedUser();
         setUser(userData);
-        setUserEnrollments(enrollmentsData as Enrollment[]);
-        setAllTrainings(trainingsData);
+
+        if (userData) {
+            const [enrollmentsData, trainingsData] = await Promise.all([
+              getEnrollments(),
+              getTrainings()
+            ]);
+            setUserEnrollments(enrollmentsData as Enrollment[]);
+            setAllTrainings(trainingsData);
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -240,7 +242,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <ProfileCard user={user} loggedInUserId={loggedInUserId} />
+          <ProfileCard user={user} />
         </div>
       </div>
     </div>

@@ -23,9 +23,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const UserProfileSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
   email: z.string().email('Por favor, insira um email válido.'),
+  registration: z.string().min(1, 'A matrícula é obrigatória.'),
   jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
   admissionDate: z.string(),
   avatar: z.any().optional(),
@@ -48,6 +49,7 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
       id: user.id,
       name: user.name || '',
       email: user.email || '',
+      registration: user.registration || '',
       jobTitle: user.jobTitle || '',
       admissionDate: user.admissionDate || '',
     },
@@ -60,16 +62,20 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
     if (state.message && !state.errors) {
         toast({ title: 'Sucesso!', description: state.message });
         onFormSubmit();
+        // For new users, a page reload might be necessary to fetch server-side data
+        if (isNewUser) {
+            window.location.reload();
+        }
     } else if (state.message && state.errors) {
         toast({ title: 'Erro', description: state.message, variant: 'destructive' });
     }
-  }, [state, onFormSubmit, toast]);
+  }, [state, onFormSubmit, toast, isNewUser]);
 
 
   return (
     <Form {...form}>
     <form action={dispatch} className="space-y-4">
-        <input type="hidden" name="id" value={user.id} />
+        {user.id && <input type="hidden" name="id" value={user.id} />}
         <FormField
         control={form.control}
         name="name"
@@ -91,6 +97,19 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="registration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Matrícula</FormLabel>
+              <FormControl>
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -139,7 +158,7 @@ export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditP
             )}
         />
         
-        {state.message && state.errors && (
+        {state?.message && state.errors && (
         <p className="text-sm font-medium text-destructive">{state.message}</p>
         )}
 
