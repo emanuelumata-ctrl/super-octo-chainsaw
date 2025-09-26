@@ -38,9 +38,9 @@ export default function TrainingsPage() {
 
   const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
 
-  const handleDelete = (userId: string, trainingId: string) => {
+  const handleDelete = (trainingId: string) => {
     startTransition(async () => {
-      await deleteTraining({ userId, trainingId });
+      await deleteTraining({ userId: loggedInUserId, trainingId });
     });
   };
 
@@ -147,7 +147,7 @@ export default function TrainingsPage() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(enrollment.userId, enrollment.trainingId)}>
+                                <AlertDialogAction onClick={() => handleDelete(enrollment.trainingId)}>
                                     {isPending ? 'Excluindo...' : 'Sim, excluir'}
                                 </AlertDialogAction>
                                 </AlertDialogFooter>
