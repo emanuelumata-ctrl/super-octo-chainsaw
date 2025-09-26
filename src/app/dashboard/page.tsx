@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import type { Enrollment, Training, User } from '@/lib/types';
+import type { Enrollment, Training } from '@/lib/types';
 import { getEnrollments, getTrainings, getAuthenticatedUser } from '@/lib/actions';
 import { redirect } from 'next/navigation';
 
@@ -33,7 +33,6 @@ export default async function DashboardPage() {
   const user = await getAuthenticatedUser();
 
   if (!user) {
-    // This case should be handled by the layout and middleware, but as a fallback:
     redirect('/');
   }
   
@@ -160,9 +159,9 @@ export default async function DashboardPage() {
                               <TableCell>{training.trainingHours} horas</TableCell>
                               <TableCell className="text-right">
                                 <Button asChild variant="ghost" size="icon">
-                                    <Link href={`/dashboard/trainings/${enrollment.trainingId}`}>
+                                    <Link href={`/dashboard/certificate/${user.id}/${enrollment.trainingId}`}>
                                         <Award className="h-4 w-4" />
-                                        <span className="sr-only">Ver Detalhes</span>
+                                        <span className="sr-only">Ver Certificado</span>
                                     </Link>
                                 </Button>
                               </TableCell>

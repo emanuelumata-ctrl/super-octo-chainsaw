@@ -4,9 +4,8 @@ import { notFound, redirect } from 'next/navigation';
 import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAuthenticatedUser, getEnrollmentsByTrainingId, getTrainingById } from '@/lib/actions';
-import type { Training } from '@/lib/types';
 import { BadgeCheck } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -65,7 +64,7 @@ export default async function TrainingDetailPage({
             {isCompleted && (
                 <Alert>
                     <BadgeCheck className="h-4 w-4" />
-                    <AlertTitle>Treinamento Realizado</AlertTitle>
+                    <AlertTitle>Treinamento Concluído</AlertTitle>
                     <AlertDescription>
                         Você concluiu este treinamento. Seu certificado está disponível.
                     </AlertDescription>

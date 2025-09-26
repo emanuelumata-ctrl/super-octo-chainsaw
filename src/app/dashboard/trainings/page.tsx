@@ -12,24 +12,19 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
-import { deleteAllTrainings, deleteTraining, getEnrollments, getTrainings } from '@/lib/actions';
-import { PlusCircle, Award, Trash2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { getEnrollments, getTrainings, getAuthenticatedUser } from '@/lib/actions';
+import { Award, Trash2 } from 'lucide-react';
 import type { Enrollment, Training } from '@/lib/types';
 import { TrainingsClient } from './_components/trainings-client';
+import { redirect } from 'next/navigation';
 
 
 export default async function TrainingsPage() {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    redirect('/');
+  }
+
   const [enrollmentData, trainingData] = await Promise.all([
     getEnrollments(),
     getTrainings(),
@@ -71,7 +66,7 @@ export default async function TrainingsPage() {
                   if (!training) return null;
 
                   return (
-                    <TableRow key={`${enrollment.userId}-${enrollment.trainingId}`}>
+                    <TableRow key={enrollment.id}>
                       <TableCell className="font-medium">
                         <p>{training.title}</p>
                         <p className="text-xs text-muted-foreground">
@@ -89,7 +84,7 @@ export default async function TrainingsPage() {
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="icon">
                           <Link
-                            href={`/dashboard/trainings/${enrollment.trainingId}`}
+                            href={`/dashboard/certificate/${user.id}/${enrollment.trainingId}`}
                           >
                             <Award className="h-4 w-4" />
                             <span className="sr-only">Ver Detalhes</span>
@@ -97,27 +92,7 @@ export default async function TrainingsPage() {
                         </Button>
                       </TableCell>
                       <TableCell className="text-right">
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Essa ação não pode ser desfeita. Isso excluirá permanentemente o registro do treinamento "{training.title}".
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteTraining(enrollment.trainingId)}>
-                                    Sim, excluir
-                                </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                         <TrainingsClient.DeleteButton trainingId={enrollment.trainingId} trainingTitle={training.title} />
                       </TableCell>
                     </TableRow>
                   );

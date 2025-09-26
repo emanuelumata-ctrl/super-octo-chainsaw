@@ -22,6 +22,14 @@ async function getUserIdFromSession(): Promise<string | null> {
     return null;
 }
 
+export async function getAuthenticatedUser(): Promise<User | null> {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+      return null;
+    }
+    return await getUserById(userId);
+}
+
 
 const TrainingSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -38,7 +46,7 @@ const TrainingSchema = z.object({
 export async function createTraining(prevState: any, formData: FormData) {
     const user = await getAuthenticatedUser();
     if (!user) {
-        return redirect('/');
+        return { message: 'Ação não autorizada. Por favor, faça login.' };
     }
 
     const validatedFields = TrainingSchema.safeParse(Object.fromEntries(formData));
@@ -93,6 +101,11 @@ const UserProfileSchema = z.object({
 });
   
 export async function updateUserProfile(prevState: any, formData: FormData) {
+    const sessionUserId = await getUserIdFromSession();
+    if (!sessionUserId) {
+        return { message: 'Erro de autenticação. Sessão não encontrada.', errors: {} };
+    }
+
     const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -102,34 +115,25 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
         };
     }
     
+    // Use the ID from the session as the source of truth.
     const { id, avatar, ...userData } = validatedFields.data;
-    const sessionUserId = await getUserIdFromSession();
-    
-    // Use the ID from the form if available, otherwise use the one from the session.
     const userId = id || sessionUserId;
 
-    if (!userId) {
-        return { message: 'Erro de autenticação. ID de usuário não encontrado.', errors: {} };
+    if (userId !== sessionUserId) {
+         return { message: 'Erro de permissão.', errors: {} };
     }
 
-    let avatarUrl;
 
     try {
         const userRef = doc(db, 'users', userId);
-
+        const dataToUpdate: Partial<User> = { ...userData };
+        
         if (avatar && avatar.size > 0) {
             const storageRef = ref(storage, `avatars/${userId}/${avatar.name}`);
             const snapshot = await uploadBytes(storageRef, avatar);
-            avatarUrl = await getDownloadURL(snapshot.ref);
+            dataToUpdate.avatarUrl = await getDownloadURL(snapshot.ref);
         }
 
-        const dataToUpdate: Partial<User> = { ...userData };
-        if (avatarUrl) {
-            dataToUpdate.avatarUrl = avatarUrl;
-        }
-
-        // Use setDoc with merge: true. This will create the document if it doesn't exist,
-        // or update it if it does. This is perfect for both creating and editing a profile.
         await setDoc(userRef, dataToUpdate, { merge: true });
 
     } catch (error) {
@@ -152,7 +156,7 @@ export async function updateUserEnrollment(
 ) {
     const user = await getAuthenticatedUser();
     if (!user) {
-        return redirect('/');
+         return { message: 'Ação não autorizada. Por favor, faça login.' };
     }
 
     const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
@@ -188,7 +192,7 @@ export async function updateEnrollmentStatus(
 ) {
   const user = await getAuthenticatedUser();
   if (!user) {
-    return redirect('/');
+    return { message: 'Ação não autorizada. Por favor, faça login.' };
   }
   
   const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
@@ -204,7 +208,6 @@ export async function updateEnrollmentStatus(
       };
       await updateDoc(enrollmentDoc.ref, updateData);
   } else {
-      // If no enrollment exists, create one
       await addDoc(collection(db, "enrollments"), {
           trainingId,
           userId,
@@ -222,7 +225,7 @@ export async function updateEnrollmentStatus(
 export async function deleteTraining(trainingId: string) {
     const user = await getAuthenticatedUser();
     if (!user) {
-        return redirect('/');
+        return { message: 'Ação não autorizada. Por favor, faça login.' };
     }
     const q = query(collection(db, "enrollments"), where("userId", "==", user.id), where("trainingId", "==", trainingId));
     const querySnapshot = await getDocs(q);
@@ -242,7 +245,7 @@ export async function deleteTraining(trainingId: string) {
 export async function deleteAllTrainings() {
     const user = await getAuthenticatedUser();
     if (!user) {
-        return redirect('/');
+        return { message: 'Ação não autorizada. Por favor, faça login.' };
     }
     const q = query(collection(db, "enrollments"), where("userId", "==", user.id));
     const querySnapshot = await getDocs(q);
@@ -298,13 +301,6 @@ export async function getEnrollmentsByTrainingId(trainingId: string) {
     return enrollmentSnapshot.docs.map(doc => doc.data());
 }
 
-export async function getAuthenticatedUser(): Promise<User | null> {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
-      return null;
-    }
-    return await getUserById(userId);
-}
 
 export async function getUserById(id: string): Promise<User | null> {
     try {
@@ -342,21 +338,19 @@ export async function handleLogin(prevState: any, formData: FormData) {
     let userId: string;
 
     if (querySnapshot.empty) {
-      // User does not exist, create a new one
+      // User does not exist, create a new one with minimal info
       const newUser = {
         name,
         registration,
         email: '',
         jobTitle: '',
         admissionDate: '',
-        avatarUrl: 'https://picsum.photos/seed/1/200/200', // Default avatar
+        avatarUrl: `https://i.pravatar.cc/150?u=${registration}`, 
       };
       const userDocRef = await addDoc(usersRef, newUser);
       userId = userDocRef.id;
     } else {
-        // User exists
         const userDoc = querySnapshot.docs[0];
-        // Optional: Check if the name matches for extra security
         if (userDoc.data().name.toLowerCase() !== name.toLowerCase()) {
             return { error: 'A matrícula já está em uso com um nome diferente.' };
         }

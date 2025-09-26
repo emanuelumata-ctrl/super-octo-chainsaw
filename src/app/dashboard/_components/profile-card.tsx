@@ -14,7 +14,6 @@ import { Edit, Calendar, Briefcase } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { EditProfileForm } from './edit-profile-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProfileCardProps {
   user: User | null;
@@ -23,7 +22,12 @@ interface ProfileCardProps {
 export function ProfileCard({ user }: ProfileCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  if (!user || !user.registration) { // Check if registration is missing, indicating a new/incomplete profile
+  if (!user) {
+    return null; // Should be handled by parent component, but as a fallback
+  }
+
+  // Check if registration is missing, indicating a new/incomplete profile
+  if (!user.registration || !user.email) { 
     return (
         <Card>
             <CardHeader>
@@ -34,15 +38,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
             </CardHeader>
             <CardContent>
                 <EditProfileForm 
-                    user={user || { 
-                        id: '', // Will be set by session
-                        name: '', 
-                        email: '', 
-                        jobTitle: '', 
-                        admissionDate: '',
-                        registration: '',
-                        avatarUrl: 'https://picsum.photos/seed/1/200/200' 
-                    }} 
+                    user={user} 
                     isNewUser={true}
                     onFormSubmit={() => {}} 
                 />
@@ -82,7 +78,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
             </div>
           </div>
           <div className="space-y-2 text-sm">
-            <div className="flex items-center">
+             <div className="flex items-center">
               <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>{user.jobTitle || 'Cargo não definido'}</span>
             </div>
