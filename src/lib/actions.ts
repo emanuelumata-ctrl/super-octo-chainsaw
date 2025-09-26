@@ -36,8 +36,8 @@ const TrainingSchema = z.object({
 
 
 export async function createTraining(prevState: any, formData: FormData) {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
         return redirect('/');
     }
 
@@ -64,7 +64,7 @@ export async function createTraining(prevState: any, formData: FormData) {
 
         // Automatically enroll the current user as "Completed"
         await addDoc(collection(db, "enrollments"), {
-            userId: userId,
+            userId: user.id,
             trainingId: trainingDocRef.id,
             status: 'Completed',
             completionDate: new Date().toISOString().split('T')[0],
@@ -150,6 +150,11 @@ export async function updateUserEnrollment(
   userId: string,
   isEnrolled: boolean
 ) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+        return redirect('/');
+    }
+
     const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
 
@@ -181,6 +186,11 @@ export async function updateEnrollmentStatus(
   userId: string,
   status: EnrollmentStatus
 ) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return redirect('/');
+  }
+  
   const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
   const querySnapshot = await getDocs(q);
 
@@ -210,11 +220,11 @@ export async function updateEnrollmentStatus(
 
 
 export async function deleteTraining(trainingId: string) {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
-        return;
+    const user = await getAuthenticatedUser();
+    if (!user) {
+        return redirect('/');
     }
-    const q = query(collection(db, "enrollments"), where("userId", "==", userId), where("trainingId", "==", trainingId));
+    const q = query(collection(db, "enrollments"), where("userId", "==", user.id), where("trainingId", "==", trainingId));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
@@ -230,11 +240,11 @@ export async function deleteTraining(trainingId: string) {
 }
 
 export async function deleteAllTrainings() {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
-        return;
+    const user = await getAuthenticatedUser();
+    if (!user) {
+        return redirect('/');
     }
-    const q = query(collection(db, "enrollments"), where("userId", "==", userId));
+    const q = query(collection(db, "enrollments"), where("userId", "==", user.id));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
@@ -262,12 +272,12 @@ export async function getTrainings(): Promise<Training[]> {
 }
 
 export async function getEnrollments() {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
         return [];
     }
     const enrollmentsCol = collection(db, 'enrollments');
-    const q = query(enrollmentsCol, where('userId', '==', userId));
+    const q = query(enrollmentsCol, where('userId', '==', user.id));
     const enrollmentSnapshot = await getDocs(q);
     return enrollmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }

@@ -12,11 +12,15 @@ import { UserProfile } from './_components/user-profile';
 import { Logo } from '@/components/logo';
 import { SidebarNav } from '@/components/sidebar-nav';
 import { getAuthenticatedUser } from '@/lib/actions';
-import type { User } from '@/lib/types';
+import { redirect } from 'next/navigation';
 
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const user = await getAuthenticatedUser();
+  
+  if (!user) {
+    redirect('/');
+  }
   
   return (
     <SidebarProvider>

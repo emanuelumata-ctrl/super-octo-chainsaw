@@ -27,20 +27,14 @@ import {
 import { Button } from '@/components/ui/button';
 import type { Enrollment, Training, User } from '@/lib/types';
 import { getEnrollments, getTrainings, getAuthenticatedUser } from '@/lib/actions';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
   const user = await getAuthenticatedUser();
 
   if (!user) {
-    // This case should ideally be handled by middleware, but as a fallback:
-    return (
-        <div className="space-y-8">
-            <PageHeader
-                title="Usuário não encontrado"
-                description="Não foi possível carregar as informações do usuário."
-            />
-        </div>
-    )
+    // This case should be handled by the layout and middleware, but as a fallback:
+    redirect('/');
   }
   
   // If user profile is not complete, show profile card to complete it

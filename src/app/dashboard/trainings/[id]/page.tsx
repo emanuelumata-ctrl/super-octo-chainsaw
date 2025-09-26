@@ -1,6 +1,6 @@
 'use server';
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -12,28 +12,23 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-async function getTrainingData(id: string): Promise<{ training: Training | null, enrollments: any[], user: any }> {
-    const training = await getTrainingById(id);
-    if (!training) {
-        return { training: null, enrollments: [], user: null };
-    }
-    const enrollments = await getEnrollmentsByTrainingId(id);
-    const user = await getAuthenticatedUser();
-    return { training, enrollments, user };
-}
-
 export default async function TrainingDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const { training, enrollments, user } = await getTrainingData(params.id);
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    redirect('/');
+  }
 
-  if (!training || !user) {
+  const training = await getTrainingById(params.id);
+  if (!training) {
     notFound();
   }
   
-  const userEnrollment = enrollments.find(e => e.userId === user.id && e.trainingId === params.id);
+  const enrollments = await getEnrollmentsByTrainingId(params.id);
+  const userEnrollment = enrollments.find(e => e.userId === user.id);
   const isCompleted = userEnrollment?.status === 'Completed' || userEnrollment?.status === 'Concluído';
 
   const image = PlaceHolderImages.find((p) => p.id === training.coverImageId);
