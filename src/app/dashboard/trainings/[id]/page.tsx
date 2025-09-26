@@ -4,10 +4,13 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { EnrollmentManager } from './_components/enrollment-manager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEnrollmentsByTrainingId, getTrainingById, getUsers } from '@/lib/actions';
 import type { Training } from '@/lib/types';
+import { BadgeCheck } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 async function getTrainingData(id: string): Promise<{ training: Training | null, enrollments: any[], users: any[] }> {
     const training = await getTrainingById(id);
@@ -29,6 +32,10 @@ export default async function TrainingDetailPage({
   if (!training) {
     notFound();
   }
+  
+  const loggedInUserId = 'user-1';
+  const userEnrollment = enrollments.find(e => e.userId === loggedInUserId);
+  const isCompleted = userEnrollment?.status === 'Completed' || userEnrollment?.status === 'Concluído';
 
   const image = PlaceHolderImages.find((p) => p.id === training.coverImageId);
 
@@ -40,40 +47,42 @@ export default async function TrainingDetailPage({
       />
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-            <Card>
+            <Card className="overflow-hidden">
+                {image && (
+                <Image
+                    src={image.imageUrl}
+                    alt={training.title}
+                    width={600}
+                    height={400}
+                    data-ai-hint={image.imageHint}
+                    className="aspect-video w-full object-cover"
+                />
+                )}
                 <CardHeader>
-                    <CardTitle>Gerenciamento de Inscrições</CardTitle>
-                    <CardDescription>Inscreva usuários e acompanhe o progresso deles neste módulo.</CardDescription>
+                <CardTitle>Sobre este treinamento</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <EnrollmentManager 
-                        allUsers={users}
-                        trainingId={training.id}
-                        initialEnrollments={enrollments}
-                    />
+                <p className="text-muted-foreground">{training.description}</p>
                 </CardContent>
             </Card>
         </div>
 
         <div className="space-y-6">
-          <Card className="overflow-hidden">
-            {image && (
-              <Image
-                src={image.imageUrl}
-                alt={training.title}
-                width={600}
-                height={400}
-                data-ai-hint={image.imageHint}
-                className="aspect-video w-full object-cover"
-              />
+            <Alert>
+                <BadgeCheck className="h-4 w-4" />
+                <AlertTitle>Treinamento Realizado</AlertTitle>
+                <AlertDescription>
+                    Você concluiu este treinamento. Seu certificado está disponível.
+                </AlertDescription>
+            </Alert>
+
+            {isCompleted && userEnrollment && (
+                 <Button asChild className="w-full">
+                    <Link href={`/dashboard/certificate/${userEnrollment.userId}/${userEnrollment.trainingId}`}>
+                        Ver Certificado
+                    </Link>
+                 </Button>
             )}
-            <CardHeader>
-              <CardTitle>Sobre este treinamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">{training.description}</p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
