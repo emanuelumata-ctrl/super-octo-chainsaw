@@ -34,7 +34,7 @@ export default async function TrainingDetailPage({
   }
   
   const loggedInUserId = 'user-1';
-  const userEnrollment = enrollments.find(e => e.userId === loggedInUserId);
+  const userEnrollment = enrollments.find(e => e.userId === loggedInUserId && e.trainingId === params.id);
   const isCompleted = userEnrollment?.status === 'Completed' || userEnrollment?.status === 'Concluído';
 
   const image = PlaceHolderImages.find((p) => p.id === training.coverImageId);
@@ -68,13 +68,15 @@ export default async function TrainingDetailPage({
         </div>
 
         <div className="space-y-6">
-            <Alert>
-                <BadgeCheck className="h-4 w-4" />
-                <AlertTitle>Treinamento Realizado</AlertTitle>
-                <AlertDescription>
-                    Você concluiu este treinamento. Seu certificado está disponível.
-                </AlertDescription>
-            </Alert>
+            {isCompleted && (
+                <Alert>
+                    <BadgeCheck className="h-4 w-4" />
+                    <AlertTitle>Treinamento Realizado</AlertTitle>
+                    <AlertDescription>
+                        Você concluiu este treinamento. Seu certificado está disponível.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {isCompleted && userEnrollment && (
                  <Button asChild className="w-full">
