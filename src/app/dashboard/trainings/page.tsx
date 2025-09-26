@@ -124,10 +124,10 @@ export default function TrainingsPage() {
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="icon">
                           <Link
-                            href={`/dashboard/certificate/${enrollment.userId}/${enrollment.trainingId}`}
+                            href={`/dashboard/trainings/${enrollment.trainingId}`}
                           >
                             <Award className="h-4 w-4" />
-                            <span className="sr-only">Ver Certificado</span>
+                            <span className="sr-only">Ver Detalhes</span>
                           </Link>
                         </Button>
                       </TableCell>
