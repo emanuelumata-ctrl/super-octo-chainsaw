@@ -84,7 +84,8 @@ const UserProfileSchema = z.object({
 export async function updateUserProfile(prevState: any, formData: FormData) {
     const userId = await getUserIdFromSession();
     if (!userId) {
-        return redirect('/');
+        // This should theoretically not happen if the form page is protected
+        return { message: 'Erro de autenticação. Por favor, faça login novamente.', errors: {} };
     }
 
     const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -113,13 +114,15 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
             dataToUpdate.avatarUrl = avatarUrl;
         }
 
-        // Use setDoc with merge: true to create or update the document
+        // Use setDoc with merge: true. This will create the document if it doesn't exist,
+        // or update it if it does. This is perfect for both creating and editing a profile.
         await setDoc(userRef, dataToUpdate, { merge: true });
 
     } catch (error) {
         console.error("Firebase error:", error);
         return {
             message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
+            errors: {}
         };
     }
 
