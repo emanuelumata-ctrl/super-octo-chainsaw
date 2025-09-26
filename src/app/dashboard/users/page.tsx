@@ -1,4 +1,5 @@
-import { users } from '@/lib/data';
+'use server';
+
 import { PageHeader } from '@/components/page-header';
 import {
   Table,
@@ -10,8 +11,10 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getUsers } from '@/lib/actions';
 
-export default function UsersPage() {
+export default async function UsersPage() {
+  const users = await getUsers();
   return (
     <div className="space-y-8">
       <PageHeader

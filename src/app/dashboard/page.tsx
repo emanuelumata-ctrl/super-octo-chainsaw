@@ -13,7 +13,6 @@ import {
   Trophy,
   Award
 } from 'lucide-react';
-import { trainings, users, enrollments } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Progress } from '@/components/ui/progress';
 import { ProfileCard } from './_components/profile-card';
@@ -26,11 +25,87 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import type { Enrollment, Training, User } from '@/lib/types';
+import { getEnrollments, getTrainings, getUserById } from '@/lib/actions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
-  // Simulating a logged-in user. In a real app, this would come from an auth context.
   const loggedInUserId = 'user-1';
-  const user = users.find((u) => u.id === loggedInUserId);
+  const [user, setUser] = useState<User | null>(null);
+  const [userEnrollments, setUserEnrollments] = useState<Enrollment[]>([]);
+  const [allTrainings, setAllTrainings] = useState<Training[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const [userData, enrollmentsData, trainingsData] = await Promise.all([
+          getUserById(loggedInUserId),
+          getEnrollments(loggedInUserId),
+          getTrainings()
+        ]);
+        setUser(userData);
+        setUserEnrollments(enrollmentsData as Enrollment[]);
+        setAllTrainings(trainingsData);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Carregando..."
+                description="Buscando suas informações."
+            />
+            <div className="grid gap-8 lg:grid-cols-3">
+                <div className="space-y-8 lg:col-span-2">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <Card><CardHeader><Skeleton className="h-4 w-3/4" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /></CardContent></Card>
+                        <Card><CardHeader><Skeleton className="h-4 w-3/4" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /></CardContent></Card>
+                        <Card><CardHeader><Skeleton className="h-4 w-3/4" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /><Skeleton className="mt-2 h-2 w-full" /></CardContent></Card>
+                    </div>
+                    <Card>
+                        <CardHeader><CardTitle>Meus Registros de Treinamento</CardTitle></CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader><TableRow><TableHead>Treinamento</TableHead><TableHead>Data</TableHead><TableHead>Horas</TableHead><TableHead className='text-right'>Certificado</TableHead></TableRow></TableHeader>
+                                <TableBody>
+                                    <TableRow><TableCell colSpan={4} className="h-24 text-center">Carregando registros...</TableCell></TableRow>
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1">
+                    <Card>
+                        <CardHeader><CardTitle>Meu Perfil</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex flex-col items-center space-y-4">
+                                <Skeleton className="h-24 w-24 rounded-full" />
+                                <div className="text-center w-full space-y-2">
+                                    <Skeleton className="h-6 w-3/4 mx-auto" />
+                                    <Skeleton className="h-4 w-1/2 mx-auto" />
+                                </div>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-full" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    )
+  }
 
   if (!user) {
     return (
@@ -41,7 +116,6 @@ export default function DashboardPage() {
     );
   }
 
-  const userEnrollments = enrollments.filter((e) => e.userId === user.id);
   const completedEnrollments = userEnrollments.filter(
     (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
@@ -58,7 +132,7 @@ export default function DashboardPage() {
       ? Math.round((totalCompleted / totalTrainingsForUser) * 100)
       : 0;
 
-  const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
+  const getTrainingById = (id: string) => allTrainings.find((t) => t.id === id);
   
   return (
     <div className="space-y-8">

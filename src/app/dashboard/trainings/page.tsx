@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import {
   Table,
   TableBody,
@@ -13,8 +13,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
-import { trainings, enrollments } from '@/lib/data';
-import { deleteTraining, deleteAllTrainings } from '@/lib/actions';
+import { deleteAllTrainings, deleteTraining, getEnrollments, getTrainings } from '@/lib/actions';
 import { PlusCircle, Award, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -27,13 +26,32 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import type { Enrollment, Training } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TrainingsPage() {
   const loggedInUserId = 'user-1';
-  let [isPending, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [trainings, setTrainings] = useState<Training[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      const [enrollmentData, trainingData] = await Promise.all([
+        getEnrollments(loggedInUserId),
+        getTrainings(),
+      ]);
+      setEnrollments(enrollmentData as Enrollment[]);
+      setTrainings(trainingData);
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
 
   const userEnrollments = enrollments.filter(
-    (e) => e.userId === loggedInUserId && (e.status === 'Concluído' || e.status === 'Completed')
+    (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
 
   const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
@@ -41,15 +59,21 @@ export default function TrainingsPage() {
   const handleDelete = (trainingId: string) => {
     startTransition(async () => {
       await deleteTraining({ userId: loggedInUserId, trainingId });
+      // Refetch data after deletion
+      const enrollmentData = await getEnrollments(loggedInUserId);
+      setEnrollments(enrollmentData as Enrollment[]);
     });
   };
 
   const handleDeleteAll = () => {
     startTransition(async () => {
       await deleteAllTrainings(loggedInUserId);
+       // Refetch data after deletion
+       const enrollmentData = await getEnrollments(loggedInUserId);
+       setEnrollments(enrollmentData as Enrollment[]);
     });
   };
-
+  
   return (
     <div className="space-y-8">
       <PageHeader
@@ -100,7 +124,17 @@ export default function TrainingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {userEnrollments.length > 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    <div className='space-y-2'>
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : userEnrollments.length > 0 ? (
                 userEnrollments.map((enrollment) => {
                   const training = getTrainingById(enrollment.trainingId);
                   if (!training) return null;

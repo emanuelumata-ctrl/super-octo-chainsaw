@@ -42,14 +42,18 @@ export function EnrollmentManager({
 
   const handleEnrollmentChange = (user: User, isEnrolled: boolean) => {
     startTransition(async () => {
-      await updateUserEnrollment(trainingId, user.id, isEnrolled);
-      if (isEnrolled) {
-        setEnrollments((prev) => prev.filter((e) => e.userId !== user.id));
-      } else {
-        setEnrollments((prev) => [...prev, { userId: user.id, trainingId, status: 'Não Iniciado' }]);
-      }
+        await updateUserEnrollment(trainingId, user.id, isEnrolled);
+        // After the server action, we either add or remove the enrollment from the local state to reflect the change.
+        if (isEnrolled) {
+            // If they were enrolled, we remove them.
+            setEnrollments(prev => prev.filter(e => e.userId !== user.id));
+        } else {
+            // If they were not enrolled, we add them with a default status.
+            setEnrollments(prev => [...prev, { userId: user.id, trainingId, status: 'Não Iniciado' }]);
+        }
     });
-  };
+};
+
 
   const handleStatusChange = (userId: string, status: EnrollmentStatus) => {
     startTransition(async () => {
@@ -60,7 +64,7 @@ export function EnrollmentManager({
             ? {
                 ...e,
                 status,
-                completionDate: status === 'Concluído' ? new Date().toISOString().split('T')[0] : undefined,
+                completionDate: status === 'Concluído' || status === 'Completed' ? new Date().toISOString().split('T')[0] : undefined,
               }
             : e
         )
@@ -69,6 +73,7 @@ export function EnrollmentManager({
   };
 
   const statusColors: Record<EnrollmentStatus, 'default' | 'secondary' | 'outline'> = {
+    'Completed': 'default',
     'Concluído': 'default',
     'Em Progresso': 'secondary',
     'Não Iniciado': 'outline',
@@ -87,6 +92,7 @@ export function EnrollmentManager({
         {allUsers.map((user) => {
           const enrollment = enrollments.find((e) => e.userId === user.id);
           const isEnrolled = !!enrollment;
+          const currentStatus = enrollment?.status ?? 'Não Iniciado';
 
           return (
             <TableRow key={user.id} className={isPending ? 'opacity-50' : ''}>
@@ -104,7 +110,7 @@ export function EnrollmentManager({
                    <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className="w-[150px] justify-between">
-                         <Badge variant={statusColors[enrollment.status]}>{enrollment.status}</Badge>
+                         <Badge variant={statusColors[currentStatus]}>{currentStatus}</Badge>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -122,7 +128,7 @@ export function EnrollmentManager({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                 {enrollment?.status === 'Concluído' && (
+                 {(enrollment?.status === 'Concluído' || enrollment?.status === 'Completed') && (
                      <Button asChild variant="ghost" size="icon" title="Ver Certificado">
                        <Link href={`/dashboard/certificate/${user.id}/${trainingId}`}>
                          <Award className="h-4 w-4 text-primary" />

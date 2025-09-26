@@ -1,23 +1,36 @@
+'use server';
+
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { trainings, users, enrollments } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { EnrollmentManager } from './_components/enrollment-manager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getEnrollmentsByTrainingId, getTrainingById, getUsers } from '@/lib/actions';
+import type { Training } from '@/lib/types';
 
-export default function TrainingDetailPage({
+async function getTrainingData(id: string): Promise<{ training: Training | null, enrollments: any[], users: any[] }> {
+    const training = await getTrainingById(id);
+    if (!training) {
+        return { training: null, enrollments: [], users: [] };
+    }
+    const enrollments = await getEnrollmentsByTrainingId(id);
+    const users = await getUsers();
+    return { training, enrollments, users };
+}
+
+export default async function TrainingDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const training = trainings.find((t) => t.id === params.id);
+  const { training, enrollments, users } = await getTrainingData(params.id);
+
   if (!training) {
     notFound();
   }
 
   const image = PlaceHolderImages.find((p) => p.id === training.coverImageId);
-  const trainingEnrollments = enrollments.filter(e => e.trainingId === training.id);
 
   return (
     <div className="space-y-8">
@@ -36,7 +49,7 @@ export default function TrainingDetailPage({
                     <EnrollmentManager 
                         allUsers={users}
                         trainingId={training.id}
-                        initialEnrollments={trainingEnrollments}
+                        initialEnrollments={enrollments}
                     />
                 </CardContent>
             </Card>

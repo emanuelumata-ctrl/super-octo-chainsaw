@@ -1,28 +1,31 @@
+'use server';
+
 import { notFound } from 'next/navigation';
-import { enrollments, trainings, users } from '@/lib/data';
 import { Certificate } from './_components/certificate';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { getEnrollments, getTrainingById, getUserById } from '@/lib/actions';
 
-export default function CertificatePage({
+export default async function CertificatePage({
   params,
 }: {
   params: { userId: string; trainingId: string };
 }) {
-  const enrollment = enrollments.find(
-    (e) =>
+  const allEnrollments = await getEnrollments();
+  const enrollment = allEnrollments.find(
+    (e: any) =>
       e.userId === params.userId &&
       e.trainingId === params.trainingId &&
-      e.status === 'Completed'
+      (e.status === 'Completed' || e.status === 'Concluído')
   );
 
   if (!enrollment) {
     notFound();
   }
 
-  const user = users.find((u) => u.id === params.userId);
-  const training = trainings.find((t) => t.id === params.trainingId);
+  const user = await getUserById(params.userId);
+  const training = await getTrainingById(params.trainingId);
 
   if (!user || !training) {
     notFound();

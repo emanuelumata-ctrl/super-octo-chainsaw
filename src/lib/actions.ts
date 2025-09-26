@@ -4,8 +4,10 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { trainings, enrollments, users } from './data';
-import type { EnrollmentStatus } from './types';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+
+import type { EnrollmentStatus, Training, User } from './types';
 
 const TrainingSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -31,7 +33,6 @@ export async function createTraining(prevState: any, formData: FormData) {
 
   try {
     const newTraining = {
-      id: `trn-${Date.now()}`,
       title: validatedFields.data.title,
       description: validatedFields.data.description,
       trainerName: validatedFields.data.trainerName,
@@ -40,15 +41,16 @@ export async function createTraining(prevState: any, formData: FormData) {
       contentUrl: '#',
       coverImageId: 'technical-onboarding',
     };
-    trainings.unshift(newTraining);
+    const trainingDocRef = await addDoc(collection(db, "trainings"), newTraining);
 
     // Automatically enroll the current user (user-1) as "Completed"
-    enrollments.push({
+    await addDoc(collection(db, "enrollments"), {
       userId: 'user-1', // Assuming user-1 is the logged-in user
-      trainingId: newTraining.id,
+      trainingId: trainingDocRef.id,
       status: 'Completed',
       completionDate: new Date().toISOString().split('T')[0],
     });
+
 
   } catch (error) {
     return {
@@ -70,44 +72,28 @@ const UserProfileSchema = z.object({
 });
 
 export async function updateUserProfile(prevState: any, formData: FormData) {
-  const validatedFields = UserProfileSchema.safeParse({
-    id: formData.get('id'),
-    name: formData.get('name'),
-    jobTitle: formData.get('jobTitle'),
-    admissionDate: formData.get('admissionDate'),
-    avatarUrl: formData.get('avatarUrl'),
-  });
+    const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
 
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'A validação falhou. Por favor, verifique os campos.',
-    };
-  }
-
-  try {
-    const userIndex = users.findIndex(u => u.id === validatedFields.data.id);
-    if (userIndex === -1) {
-      throw new Error('Usuário não encontrado.');
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'A validação falhou. Por favor, verifique os campos.',
+        };
     }
-    
-    const user = users[userIndex];
-    users[userIndex] = {
-      ...user,
-      name: validatedFields.data.name,
-      jobTitle: validatedFields.data.jobTitle,
-      admissionDate: validatedFields.data.admissionDate,
-      avatarUrl: validatedFields.data.avatarUrl,
-    };
 
-  } catch (error) {
-    return {
-      message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
-    };
-  }
+    const { id, ...userData } = validatedFields.data;
 
-  revalidatePath('/dashboard');
-  return { message: 'Perfil atualizado com sucesso!', errors: {} };
+    try {
+        const userRef = doc(db, 'users', id);
+        await updateDoc(userRef, userData);
+    } catch (error) {
+        return {
+            message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
+        };
+    }
+
+    revalidatePath('/dashboard');
+    return { message: 'Perfil atualizado com sucesso!', errors: {} };
 }
 
 
@@ -116,24 +102,29 @@ export async function updateUserEnrollment(
   userId: string,
   isEnrolled: boolean
 ) {
-  const index = enrollments.findIndex(
-    (e) => e.trainingId === trainingId && e.userId === userId
-  );
-  if (isEnrolled) {
-    if (index > -1) {
-      enrollments.splice(index, 1);
+    const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+
+    if (isEnrolled) { // If switch is turned off (un-enroll)
+        if (!querySnapshot.empty) {
+            const batch = writeBatch(db);
+            querySnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        }
+    } else { // If switch is turned on (enroll)
+        if (querySnapshot.empty) {
+            await addDoc(collection(db, "enrollments"), {
+                trainingId,
+                userId,
+                status: 'Não Iniciado',
+            });
+        }
     }
-  } else {
-    if (users.find((u) => u.id === userId) && index === -1) {
-      enrollments.push({
-        trainingId,
-        userId,
-        status: 'Não Iniciado',
-      });
-    }
-  }
   revalidatePath(`/dashboard/trainings/${trainingId}`);
   revalidatePath('/dashboard/trainings');
+  revalidatePath('/dashboard');
 }
 
 export async function updateEnrollmentStatus(
@@ -141,39 +132,99 @@ export async function updateEnrollmentStatus(
   userId: string,
   status: EnrollmentStatus
 ) {
-  const enrollment = enrollments.find(
-    (e) => e.trainingId === trainingId && e.userId === userId
-  );
+    const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
 
-  if (enrollment) {
-    enrollment.status = status;
-    if (status === 'Concluído' || status === 'Completed') {
-      enrollment.completionDate = new Date().toISOString().split('T')[0];
-    } else {
-      delete enrollment.completionDate;
+    if (!querySnapshot.empty) {
+        const enrollmentDoc = querySnapshot.docs[0];
+        const updateData: { status: EnrollmentStatus; completionDate?: string } = { status };
+        if (status === 'Concluído' || status === 'Completed') {
+            updateData.completionDate = new Date().toISOString().split('T')[0];
+        } else {
+            updateData.completionDate = ''; // Firestore can't delete a field directly with update, set to empty or null
+        }
+        await updateDoc(enrollmentDoc.ref, updateData);
     }
-  }
-  revalidatePath(`/dashboard/trainings/${trainingId}`);
+    revalidatePath(`/dashboard/trainings/${trainingId}`);
+    revalidatePath('/dashboard');
 }
 
-export async function deleteTraining({ userId, trainingId }: { userId: string, trainingId: string }) {
-  const index = enrollments.findIndex(e => e.userId === userId && e.trainingId === trainingId);
-  if (index !== -1) {
-    enrollments.splice(index, 1);
-  }
-  revalidatePath('/dashboard/trainings');
-  revalidatePath('/dashboard');
+export async function deleteTraining({ userId, trainingId }: { userId: string; trainingId: string }) {
+    const q = query(collection(db, "enrollments"), where("userId", "==", userId), where("trainingId", "==", trainingId));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+        const batch = writeBatch(db);
+        querySnapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+    }
+    
+    revalidatePath('/dashboard/trainings');
+    revalidatePath('/dashboard');
 }
 
 export async function deleteAllTrainings(userId: string) {
-    const enrollmentsToRemove = enrollments.filter(e => e.userId === userId && (e.status === 'Concluído' || e.status === 'Completed'));
-    for (let i = enrollmentsToRemove.length - 1; i >= 0; i--) {
-        const enrollmentToRemove = enrollmentsToRemove[i];
-        const index = enrollments.findIndex(e => e.userId === enrollmentToRemove.userId && e.trainingId === enrollmentToRemove.trainingId);
-        if (index !== -1) {
-            enrollments.splice(index, 1);
-        }
+    const q = query(collection(db, "enrollments"), where("userId", "==", userId), where("status", "in", ["Concluído", "Completed"]));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+        const batch = writeBatch(db);
+        querySnapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
     }
+    
     revalidatePath('/dashboard/trainings');
     revalidatePath('/dashboard');
+}
+
+export async function getUsers(): Promise<User[]> {
+    const usersCol = collection(db, 'users');
+    const userSnapshot = await getDocs(usersCol);
+    return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+}
+
+export async function getTrainings(): Promise<Training[]> {
+    const trainingsCol = collection(db, 'trainings');
+    const trainingSnapshot = await getDocs(trainingsCol);
+    return trainingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Training));
+}
+
+export async function getEnrollments(userId?: string) {
+    let enrollmentsCol = collection(db, 'enrollments');
+    if (userId) {
+        const q = query(enrollmentsCol, where('userId', '==', userId));
+        const enrollmentSnapshot = await getDocs(q);
+        return enrollmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+    const enrollmentSnapshot = await getDocs(enrollmentsCol);
+    return enrollmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+
+export async function getTrainingById(id: string) {
+    const trainingDocRef = doc(db, 'trainings', id);
+    const trainingDoc = await getDoc(trainingDocRef);
+    if (trainingDoc.exists()) {
+        return { id: trainingDoc.id, ...trainingDoc.data() } as Training;
+    }
+    return null;
+}
+
+export async function getEnrollmentsByTrainingId(trainingId: string) {
+    const q = query(collection(db, 'enrollments'), where('trainingId', '==', trainingId));
+    const enrollmentSnapshot = await getDocs(q);
+    return enrollmentSnapshot.docs.map(doc => doc.data());
+}
+
+export async function getUserById(id: string) {
+    const userDocRef = doc(db, 'users', id);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists()) {
+        return { id: userDoc.id, ...userDoc.data() } as User;
+    }
+    return null;
 }
