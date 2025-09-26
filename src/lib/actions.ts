@@ -57,7 +57,7 @@ export async function createTraining(prevState: any, formData: FormData) {
   }
 
   revalidatePath('/dashboard/trainings');
-  revalidatePath('/dashboard/records');
+  revalidatePath('/dashboard');
   redirect('/dashboard/trainings');
 }
 
