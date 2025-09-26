@@ -1,7 +1,6 @@
-'use client';
+'use server';
 
 import Link from 'next/link';
-import { useEffect, useState, useTransition } from 'react';
 import {
   Table,
   TableBody,
@@ -27,51 +26,23 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import type { Enrollment, Training } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TrainingsClient } from './_components/trainings-client';
 
-export default function TrainingsPage() {
-  const [isPending, startTransition] = useTransition();
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [trainings, setTrainings] = useState<Training[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const [enrollmentData, trainingData] = await Promise.all([
-        getEnrollments(),
-        getTrainings(),
-      ]);
-      setEnrollments(enrollmentData as Enrollment[]);
-      setTrainings(trainingData);
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
+export default async function TrainingsPage() {
+  const [enrollmentData, trainingData] = await Promise.all([
+    getEnrollments(),
+    getTrainings(),
+  ]);
 
+  const enrollments = enrollmentData as Enrollment[];
+  const trainings = trainingData as Training[];
+  
   const completedEnrollments = enrollments.filter(
     (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
 
   const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
-
-  const handleDelete = (trainingId: string) => {
-    startTransition(async () => {
-      await deleteTraining(trainingId);
-      // Refetch data after deletion
-      const enrollmentData = await getEnrollments();
-      setEnrollments(enrollmentData as Enrollment[]);
-    });
-  };
-
-  const handleDeleteAll = () => {
-    startTransition(async () => {
-      await deleteAllTrainings();
-       // Refetch data after deletion
-       const enrollmentData = await getEnrollments();
-       setEnrollments(enrollmentData as Enrollment[]);
-    });
-  };
   
   return (
     <div className="space-y-8">
@@ -79,36 +50,7 @@ export default function TrainingsPage() {
         title="Meus Registros de Treinamento"
         description="Aqui está o seu histórico de todos os treinamentos concluídos."
       >
-        <div className="flex gap-2">
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={isPending || completedEnrollments.length === 0}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Excluir Tudo
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                    <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Essa ação não pode ser desfeita. Isso excluirá permanentemente todos os seus registros de treinamento.
-                    </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteAll}>
-                        {isPending ? 'Excluindo...' : 'Sim, excluir tudo'}
-                    </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            <Button asChild>
-            <Link href="/dashboard/trainings/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Novo Treinamento
-            </Link>
-            </Button>
-        </div>
+        <TrainingsClient completedEnrollmentsCount={completedEnrollments.length} />
       </PageHeader>
       <Card>
         <CardContent>
@@ -123,17 +65,7 @@ export default function TrainingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    <div className='space-y-2'>
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : completedEnrollments.length > 0 ? (
+             {completedEnrollments.length > 0 ? (
                 completedEnrollments.map((enrollment) => {
                   const training = getTrainingById(enrollment.trainingId);
                   if (!training) return null;
@@ -167,7 +99,7 @@ export default function TrainingsPage() {
                       <TableCell className="text-right">
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" disabled={isPending}>
+                                <Button variant="ghost" size="icon">
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                             </AlertDialogTrigger>
@@ -180,8 +112,8 @@ export default function TrainingsPage() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(enrollment.trainingId)}>
-                                    {isPending ? 'Excluindo...' : 'Sim, excluir'}
+                                <AlertDialogAction onClick={() => deleteTraining(enrollment.trainingId)}>
+                                    Sim, excluir
                                 </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>

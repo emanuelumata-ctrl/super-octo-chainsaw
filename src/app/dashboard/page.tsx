@@ -1,4 +1,4 @@
-'use client';
+'use server';
 
 import Link from 'next/link';
 import {
@@ -25,100 +25,48 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
 import type { Enrollment, Training, User } from '@/lib/types';
 import { getEnrollments, getTrainings, getAuthenticatedUser } from '@/lib/actions';
-import { Skeleton } from '@/components/ui/skeleton';
 
-export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [userEnrollments, setUserEnrollments] = useState<Enrollment[]>([]);
-  const [allTrainings, setAllTrainings] = useState<Training[]>([]);
-  const [loading, setLoading] = useState(true);
+export default async function DashboardPage() {
+  const user = await getAuthenticatedUser();
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const userData = await getAuthenticatedUser();
-        setUser(userData);
-
-        if (userData) {
-            const [enrollmentsData, trainingsData] = await Promise.all([
-              getEnrollments(),
-              getTrainings()
-            ]);
-            setUserEnrollments(enrollmentsData as Enrollment[]);
-            setAllTrainings(trainingsData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
-  if (loading) {
+  if (!user) {
+    // This case should ideally be handled by middleware, but as a fallback:
     return (
         <div className="space-y-8">
             <PageHeader
-                title="Carregando..."
-                description="Buscando suas informações."
+                title="Usuário não encontrado"
+                description="Não foi possível carregar as informações do usuário."
             />
-            <div className="grid gap-8 lg:grid-cols-3">
-                <div className="space-y-8 lg:col-span-2">
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        <Card><CardHeader><Skeleton className="h-4 w-3/4" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /></CardContent></Card>
-                        <Card><CardHeader><Skeleton className="h-4 w-3/4" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /></CardContent></Card>
-                        <Card><CardHeader><Skeleton className="h-4 w-3/4" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /><Skeleton className="mt-2 h-2 w-full" /></CardContent></Card>
-                    </div>
-                    <Card>
-                        <CardHeader><CardTitle>Meus Registros de Treinamento</CardTitle></CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader><TableRow><TableHead>Treinamento</TableHead><TableHead>Data</TableHead><TableHead>Horas</TableHead><TableHead className='text-right'>Certificado</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                    <TableRow><TableCell colSpan={4} className="h-24 text-center">Carregando registros...</TableCell></TableRow>
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                </div>
-                <div className="lg:col-span-1">
-                    <Card>
-                        <CardHeader><CardTitle>Meu Perfil</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex flex-col items-center space-y-4">
-                                <Skeleton className="h-24 w-24 rounded-full" />
-                                <div className="text-center w-full space-y-2">
-                                    <Skeleton className="h-6 w-3/4 mx-auto" />
-                                    <Skeleton className="h-4 w-1/2 mx-auto" />
-                                </div>
-                            </div>
-                            <div className="space-y-2 text-sm">
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-full" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
         </div>
     )
   }
+  
+  // If user profile is not complete, show profile card to complete it
+  if (!user.registration) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <ProfileCard user={user} />
+      </div>
+    )
+  }
 
-  const completedEnrollments = userEnrollments.filter(
+  const [userEnrollments, allTrainings] = await Promise.all([
+    getEnrollments(),
+    getTrainings()
+  ]);
+
+  const completedEnrollments = (userEnrollments as Enrollment[]).filter(
     (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
-  const inProgressEnrollments = userEnrollments.filter(
+  const inProgressEnrollments = (userEnrollments as Enrollment[]).filter(
     (e) => e.status === 'Em Progresso'
   );
 
   const totalCompleted = completedEnrollments.length;
   const totalInProgress = inProgressEnrollments.length;
-  const totalTrainingsForUser = userEnrollments.length;
+  const totalTrainingsForUser = (userEnrollments as Enrollment[]).length;
 
   const experience =
     totalTrainingsForUser > 0
@@ -130,7 +78,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title={user ? `Bem-vindo(a), ${user.name}!` : 'Bem-vindo(a)!'}
+        title={`Bem-vindo(a), ${user.name}!`}
         description="Aqui está um resumo da sua jornada de aprendizado."
       />
 
