@@ -38,15 +38,15 @@ export default function TrainingsPage() {
 
   const getTrainingById = (id: string) => trainings.find((t) => t.id === id);
 
-  const handleDelete = (trainingId: string) => {
+  const handleDelete = (userId: string, trainingId: string) => {
     startTransition(async () => {
-      await deleteTraining(trainingId);
+      await deleteTraining({ userId, trainingId });
     });
   };
 
   const handleDeleteAll = () => {
     startTransition(async () => {
-      await deleteAllTrainings();
+      await deleteAllTrainings(loggedInUserId);
     });
   };
 
@@ -106,7 +106,7 @@ export default function TrainingsPage() {
                   if (!training) return null;
 
                   return (
-                    <TableRow key={enrollment.trainingId}>
+                    <TableRow key={`${enrollment.userId}-${enrollment.trainingId}`}>
                       <TableCell className="font-medium">
                         <p>{training.title}</p>
                         <p className="text-xs text-muted-foreground">
@@ -147,7 +147,7 @@ export default function TrainingsPage() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(training.id)}>
+                                <AlertDialogAction onClick={() => handleDelete(enrollment.userId, enrollment.trainingId)}>
                                     {isPending ? 'Excluindo...' : 'Sim, excluir'}
                                 </AlertDialogAction>
                                 </AlertDialogFooter>

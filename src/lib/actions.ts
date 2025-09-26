@@ -156,40 +156,38 @@ export async function updateEnrollmentStatus(
   revalidatePath(`/dashboard/trainings/${trainingId}`);
 }
 
-export async function deleteTraining(trainingId: string) {
+export async function deleteTraining(enrollmentId: { userId: string, trainingId: string }) {
   try {
-    const index = trainings.findIndex(t => t.id === trainingId);
+    const index = enrollments.findIndex(e => e.userId === enrollmentId.userId && e.trainingId === enrollmentId.trainingId);
     if (index > -1) {
-      trainings.splice(index, 1);
-      // Also remove associated enrollments
-      const enrollmentsToRemove = enrollments.filter(e => e.trainingId === trainingId);
-      enrollmentsToRemove.forEach(e => {
-        const enrollmentIndex = enrollments.indexOf(e);
-        if (enrollmentIndex > -1) {
-          enrollments.splice(enrollmentIndex, 1);
-        }
-      });
+      enrollments.splice(index, 1);
+    } else {
+        throw new Error("Inscrição não encontrada.");
     }
   } catch (error) {
     return {
-      message: 'Erro no Banco de Dados: Falha ao apagar o treinamento.',
+      message: 'Erro no Banco de Dados: Falha ao apagar o registro de treinamento.',
     };
   }
   revalidatePath('/dashboard/trainings');
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/records');
 }
 
-export async function deleteAllTrainings() {
+export async function deleteAllTrainings(userId: string) {
     try {
-        trainings.length = 0;
-        enrollments.length = 0;
+       const userEnrollments = enrollments.filter(e => e.userId === userId);
+       userEnrollments.forEach(e => {
+         const enrollmentIndex = enrollments.indexOf(e);
+         if (enrollmentIndex > -1) {
+           enrollments.splice(enrollmentIndex, 1);
+         }
+       });
+
     } catch (error) {
         return {
-        message: 'Erro no Banco de Dados: Falha ao apagar todos os treinamentos.',
+          message: 'Erro no Banco de Dados: Falha ao apagar todos os registros de treinamentos.',
         };
     }
     revalidatePath('/dashboard/trainings');
     revalidatePath('/dashboard');
-    revalidatePath('/dashboard/records');
 }
