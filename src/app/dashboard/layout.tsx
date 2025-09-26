@@ -11,9 +11,13 @@ import {
 import { UserProfile } from './_components/user-profile';
 import { Logo } from '@/components/logo';
 import { SidebarNav } from '@/components/sidebar-nav';
+import { getAuthenticatedUser } from '@/lib/actions';
+import type { User } from '@/lib/types';
 
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  const user = await getAuthenticatedUser();
+  
   return (
     <SidebarProvider>
       <Sidebar>
@@ -33,7 +37,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <SidebarTrigger />
           </div>
           <div className="ml-auto">
-            <UserProfile />
+            <UserProfile user={user} />
           </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>

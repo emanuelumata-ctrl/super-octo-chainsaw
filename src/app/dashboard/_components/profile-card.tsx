@@ -23,7 +23,7 @@ interface ProfileCardProps {
 export function ProfileCard({ user }: ProfileCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  if (!user) {
+  if (!user || !user.registration) { // Check if registration is missing, indicating a new/incomplete profile
     return (
         <Card>
             <CardHeader>
@@ -34,7 +34,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
             </CardHeader>
             <CardContent>
                 <EditProfileForm 
-                    user={{ 
+                    user={user || { 
                         id: '', // Will be set by session
                         name: '', 
                         email: '', 
@@ -50,28 +50,6 @@ export function ProfileCard({ user }: ProfileCardProps) {
         </Card>
     )
   }
-  
-  if (!user.id) {
-    return (
-        <Card>
-            <CardHeader><CardTitle>Meu Perfil</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex flex-col items-center space-y-4">
-                    <Skeleton className="h-24 w-24 rounded-full" />
-                    <div className="text-center w-full space-y-2">
-                        <Skeleton className="h-6 w-3/4 mx-auto" />
-                        <Skeleton className="h-4 w-1/2 mx-auto" />
-                    </div>
-                </div>
-                <div className="space-y-2 text-sm">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                </div>
-            </CardContent>
-        </Card>
-    )
-  }
-
 
   const formattedAdmissionDate = user.admissionDate ? new Date(user.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não definida';
 

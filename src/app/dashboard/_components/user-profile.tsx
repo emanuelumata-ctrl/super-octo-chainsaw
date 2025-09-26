@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
-import { handleLogout, getAuthenticatedUser } from '@/lib/actions';
+import { handleLogout } from '@/lib/actions';
 import type { User } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -14,25 +13,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function UserProfile() {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+interface UserProfileProps {
+    user: User | null;
+}
 
-    useEffect(() => {
-        async function fetchUser() {
-            setLoading(true);
-            const userData = await getAuthenticatedUser();
-            setUser(userData);
-            setLoading(false);
-        }
-        fetchUser();
-    }, []);
-
+export function UserProfile({ user }: UserProfileProps) {
     const onLogout = async () => {
         await handleLogout();
     }
 
-    if (loading) {
+    if (!user) {
         return <Skeleton className="h-9 w-9 rounded-full" />;
     }
 
@@ -53,7 +43,7 @@ export function UserProfile() {
             <DropdownMenuItem>Suporte</DropdownMenuItem>
             <DropdownMenuSeparator />
             <form action={onLogout}>
-                <button type="submit" className='w-full'>
+                <button type="submit" className='w-full text-left'>
                     <DropdownMenuItem>
                         Sair
                     </DropdownMenuItem>

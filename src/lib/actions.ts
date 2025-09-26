@@ -12,6 +12,17 @@ import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, upd
 
 import type { EnrollmentStatus, Training, User } from './types';
 
+// Helper function to get user ID from session cookie (SERVER-SIDE ONLY)
+async function getUserIdFromSession(): Promise<string | null> {
+    const cookieStore = cookies();
+    const session = cookieStore.get(SESSION_COOKIE_NAME);
+    if (session?.value) {
+        return session.value;
+    }
+    return null;
+}
+
+
 const TrainingSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
   description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
@@ -170,31 +181,31 @@ export async function updateEnrollmentStatus(
   userId: string,
   status: EnrollmentStatus
 ) {
-    const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
+  const q = query(collection(db, "enrollments"), where("trainingId", "==", trainingId), where("userId", "==", userId));
+  const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty) {
-        const enrollmentDoc = querySnapshot.docs[0];
-        const updateData: { status: EnrollmentStatus; completionDate: string | null } = { 
-            status,
-            completionDate: (status === 'Concluído' || status === 'Completed') 
-                ? new Date().toISOString().split('T')[0] 
-                : null
-        };
-        await updateDoc(enrollmentDoc.ref, updateData);
-    } else if (status === 'Concluído' || status === 'Completed' || status === 'Em Progresso' || status === 'Não Iniciado') {
-        // If no enrollment exists, create one
-        await addDoc(collection(db, "enrollments"), {
-            trainingId,
-            userId,
-            status,
-            completionDate: (status === 'Concluído' || status === 'Completed') ? new Date().toISOString().split('T')[0] : null,
-        });
-    }
+  if (!querySnapshot.empty) {
+      const enrollmentDoc = querySnapshot.docs[0];
+      const updateData: { status: EnrollmentStatus; completionDate: string | null } = { 
+          status,
+          completionDate: (status === 'Concluído' || status === 'Completed') 
+              ? new Date().toISOString().split('T')[0] 
+              : null
+      };
+      await updateDoc(enrollmentDoc.ref, updateData);
+  } else {
+      // If no enrollment exists, create one
+      await addDoc(collection(db, "enrollments"), {
+          trainingId,
+          userId,
+          status,
+          completionDate: (status === 'Concluído' || status === 'Completed') ? new Date().toISOString().split('T')[0] : null,
+      });
+  }
 
-    revalidatePath(`/dashboard/trainings/${trainingId}`);
-    revalidatePath('/dashboard');
-    revalidatePath('/dashboard/trainings');
+  revalidatePath(`/dashboard/trainings/${trainingId}`);
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/trainings');
 }
 
 
@@ -305,17 +316,6 @@ const LoginSchema = z.object({
   registration: z.string().trim().min(1, { message: 'A matrícula é obrigatória.' }),
 });
 
-async function getUserIdFromSession(): Promise<string | null> {
-    const cookieStore = cookies();
-    const session = cookieStore.get(SESSION_COOKIE_NAME);
-    if (session?.value) {
-        // In a real app, you'd decrypt and verify the session value.
-        // For this prototype, we'll just use the raw value as the user ID.
-        return session.value;
-    }
-    return null;
-}
-
 export async function handleLogin(prevState: any, formData: FormData) {
   const validatedFields = LoginSchema.safeParse(Object.fromEntries(formData.entries()));
 
@@ -347,15 +347,12 @@ export async function handleLogin(prevState: any, formData: FormData) {
         // User exists
         const userDoc = querySnapshot.docs[0];
         // Optional: Check if the name matches for extra security
-        if (userDoc.data().name !== name) {
+        if (userDoc.data().name.toLowerCase() !== name.toLowerCase()) {
             return { error: 'A matrícula já está em uso com um nome diferente.' };
         }
         userId = userDoc.id;
     }
 
-
-    // In a real app, you would create a secure, signed, and encrypted session.
-    // For this prototype, we'll store the user ID directly in a cookie.
     cookies().set(SESSION_COOKIE_NAME, userId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
