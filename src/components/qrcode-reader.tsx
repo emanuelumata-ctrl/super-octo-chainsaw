@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
-import { QrCode } from 'lucide-react';
+import { Camera, QrCode } from 'lucide-react';
 import Image from 'next/image';
 
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from './ui/button';
 
 interface QrCodeReaderProps {
     onQrCodeScan: (data: string) => void;
@@ -29,6 +30,7 @@ export function QrCodeReader({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isScanningActive, setIsScanningActive] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export function QrCodeReader({
   }, []);
   
   useEffect(() => {
-    if (!isClient || hasCameraPermission === false) return;
+    if (!isClient || !isScanningActive || hasCameraPermission === false) return;
 
     let animationFrameId: number;
     let stream: MediaStream | null = null;
@@ -100,8 +102,9 @@ export function QrCodeReader({
                         title: 'QR Code Lido!',
                         description: 'Ação registrada com sucesso.',
                     });
-                     // Se não for reutilizável, paramos o stream
+                     // Se não for reutilizável, paramos o stream e a varredura
                     if (scannedImageUrl) {
+                      setIsScanningActive(false);
                       if (stream) {
                           stream.getTracks().forEach(track => track.stop());
                       }
@@ -128,11 +131,15 @@ export function QrCodeReader({
         }
     }
 
-  }, [toast, onQrCodeScan, isClient, hasCameraPermission, scannedImageUrl]);
+  }, [toast, onQrCodeScan, isClient, hasCameraPermission, scannedImageUrl, isScanningActive]);
 
   if (!isClient) {
     return null; 
   }
+
+  const handleActivateScanner = () => {
+    setIsScanningActive(true);
+  };
 
   return (
     <div className="space-y-4">
@@ -148,7 +155,7 @@ export function QrCodeReader({
             </p>
         </div>
 
-        <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+        <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border">
             {isScanned && scannedImageUrl ? (
                  <div className="flex h-full w-full items-center justify-center p-4">
                     <Image 
@@ -158,7 +165,7 @@ export function QrCodeReader({
                         className="object-contain"
                     />
                  </div>
-            ) : (
+            ) : isScanningActive ? (
                 <>
                     <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
                     <canvas ref={canvasRef} className="hidden" />
@@ -174,6 +181,13 @@ export function QrCodeReader({
                         </div>
                     )}
                 </>
+            ) : (
+                <div className="flex flex-col items-center gap-4">
+                    <Camera className="h-16 w-16 text-muted-foreground/50" />
+                    <Button onClick={handleActivateScanner}>
+                        Escanear QR Code
+                    </Button>
+                </div>
             )}
         </div>
     </div>
