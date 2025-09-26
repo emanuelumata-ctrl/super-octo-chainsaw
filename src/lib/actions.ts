@@ -321,15 +321,32 @@ export async function handleLogin(prevState: any, formData: FormData) {
 
   try {
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('name', '==', name), where('registration', '==', registration));
-    const querySnapshot = await getDocs(q);
+    let q = query(usersRef, where('registration', '==', registration));
+    let querySnapshot = await getDocs(q);
+    let userId: string;
 
     if (querySnapshot.empty) {
-      return { error: 'Nome ou matrícula inválidos.' };
+      // User does not exist, create a new one
+      const newUser = {
+        name,
+        registration,
+        email: '',
+        jobTitle: '',
+        admissionDate: '',
+        avatarUrl: 'https://picsum.photos/seed/1/200/200', // Default avatar
+      };
+      const userDocRef = await addDoc(usersRef, newUser);
+      userId = userDocRef.id;
+    } else {
+        // User exists
+        const userDoc = querySnapshot.docs[0];
+        // Optional: Check if the name matches for extra security
+        if (userDoc.data().name !== name) {
+            return { error: 'A matrícula já está em uso com um nome diferente.' };
+        }
+        userId = userDoc.id;
     }
 
-    const userDoc = querySnapshot.docs[0];
-    const userId = userDoc.id;
 
     // In a real app, you would create a secure, signed, and encrypted session.
     // For this prototype, we'll store the user ID directly in a cookie.
