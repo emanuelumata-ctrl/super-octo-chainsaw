@@ -21,7 +21,7 @@ export type Training = {
 export type EnrollmentStatus = 'Não Iniciado' | 'Em Progresso' | 'Concluído' | 'Completed';
 
 export type Enrollment = {
-  id?: string;
+  id: string;
   userId: string;
   trainingId: string;
   status: EnrollmentStatus;

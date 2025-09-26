@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 const UserProfileSchema = z.object({
   id: z.string(),
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+  email: z.string().email('Por favor, insira um email válido.'),
   jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
   admissionDate: z.string(),
   avatarUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
@@ -32,9 +33,10 @@ const UserProfileSchema = z.object({
 interface EditProfileFormProps {
   user: User;
   onFormSubmit: () => void;
+  isNewUser?: boolean;
 }
 
-export function EditProfileForm({ user, onFormSubmit }: EditProfileFormProps) {
+export function EditProfileForm({ user, onFormSubmit, isNewUser = false }: EditProfileFormProps) {
   const { toast } = useToast();
   const initialState = { message: '', errors: {} };
   const [state, dispatch] = useActionState(updateUserProfile, initialState);
@@ -43,10 +45,11 @@ export function EditProfileForm({ user, onFormSubmit }: EditProfileFormProps) {
     resolver: zodResolver(UserProfileSchema),
     defaultValues: {
       id: user.id,
-      name: user.name,
-      jobTitle: user.jobTitle,
-      admissionDate: user.admissionDate,
-      avatarUrl: user.avatarUrl,
+      name: user.name || '',
+      email: user.email || '',
+      jobTitle: user.jobTitle || '',
+      admissionDate: user.admissionDate || '',
+      avatarUrl: user.avatarUrl || '',
     },
   });
 
@@ -76,6 +79,19 @@ export function EditProfileForm({ user, onFormSubmit }: EditProfileFormProps) {
             <FormMessage />
             </FormItem>
         )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         <FormField
         control={form.control}
@@ -121,18 +137,18 @@ export function EditProfileForm({ user, onFormSubmit }: EditProfileFormProps) {
         <p className="text-sm font-medium text-destructive">{state.message}</p>
         )}
 
-        <SubmitButton />
+        <SubmitButton isNewUser={isNewUser} />
     </form>
     </Form>
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ isNewUser }: { isNewUser: boolean }) {
   const { pending } = useFormStatus();
 
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Salvando...' : 'Salvar Alterações'}
+      {pending ? (isNewUser ? 'Criando Perfil...' : 'Salvando...') : (isNewUser ? 'Criar Perfil' : 'Salvar Alterações')}
     </Button>
   );
 }

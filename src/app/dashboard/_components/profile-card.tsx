@@ -6,20 +6,50 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Calendar, Briefcase } from 'lucide-react';
+import { Edit, Calendar, Briefcase, UserPlus } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { EditProfileForm } from './edit-profile-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface ProfileCardProps {
-  user: User;
+  user: User | null;
+  loggedInUserId: string;
 }
 
-export function ProfileCard({ user }: ProfileCardProps) {
+export function ProfileCard({ user, loggedInUserId }: ProfileCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  if (!user) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Complete seu Perfil</CardTitle>
+                <CardDescription>
+                    Para começar, por favor, preencha suas informações.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <EditProfileForm 
+                    user={{ 
+                        id: loggedInUserId, 
+                        name: '', 
+                        email: '', 
+                        jobTitle: '', 
+                        admissionDate: '', 
+                        avatarUrl: 'https://picsum.photos/seed/1/200/200' 
+                    }} 
+                    isNewUser={true}
+                    onFormSubmit={() => {}} 
+                />
+            </CardContent>
+        </Card>
+    )
+  }
+
   const formattedAdmissionDate = new Date(user.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR');
 
   return (

@@ -107,15 +107,6 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user) {
-    return (
-      <PageHeader
-        title="Usuário não encontrado"
-        description="Não foi possível carregar as informações do usuário."
-      />
-    );
-  }
-
   const completedEnrollments = userEnrollments.filter(
     (e) => e.status === 'Concluído' || e.status === 'Completed'
   );
@@ -137,7 +128,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Bem-vindo(a), ${user.name}!`}
+        title={user ? `Bem-vindo(a), ${user.name}!` : 'Bem-vindo(a)!'}
         description="Aqui está um resumo da sua jornada de aprendizado."
       />
 
@@ -208,7 +199,7 @@ export default function DashboardPage() {
                           if (!training) return null;
 
                           return (
-                            <TableRow key={enrollment.trainingId}>
+                            <TableRow key={enrollment.id}>
                               <TableCell className="font-medium">
                                 <p>{training.title}</p>
                                 <p className="text-xs text-muted-foreground">
@@ -249,7 +240,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <ProfileCard user={user} />
+          <ProfileCard user={user} loggedInUserId={loggedInUserId} />
         </div>
       </div>
     </div>

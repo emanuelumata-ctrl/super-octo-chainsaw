@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, addDoc, query, where, getDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 
 import type { EnrollmentStatus, Training, User } from './types';
 
@@ -64,37 +64,40 @@ export async function createTraining(prevState: any, formData: FormData) {
 }
 
 const UserProfileSchema = z.object({
-  id: z.string(),
-  name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
-  jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
-  admissionDate: z.string(),
-  avatarUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
-});
-
-export async function updateUserProfile(prevState: any, formData: FormData) {
-    const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
-
-    if (!validatedFields.success) {
-        return {
-            errors: validatedFields.error.flatten().fieldErrors,
-            message: 'A validação falhou. Por favor, verifique os campos.',
-        };
-    }
-
-    const { id, ...userData } = validatedFields.data;
-
-    try {
-        const userRef = doc(db, 'users', id);
-        await updateDoc(userRef, userData);
-    } catch (error) {
-        return {
-            message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
-        };
-    }
-
-    revalidatePath('/dashboard');
-    return { message: 'Perfil atualizado com sucesso!', errors: {} };
-}
+    id: z.string(),
+    name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+    email: z.string().email('Por favor, insira um email válido.'),
+    jobTitle: z.string().min(3, 'O cargo deve ter pelo menos 3 caracteres.'),
+    admissionDate: z.string(),
+    avatarUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
+  });
+  
+  export async function updateUserProfile(prevState: any, formData: FormData) {
+      const validatedFields = UserProfileSchema.safeParse(Object.fromEntries(formData.entries()));
+  
+      if (!validatedFields.success) {
+          return {
+              errors: validatedFields.error.flatten().fieldErrors,
+              message: 'A validação falhou. Por favor, verifique os campos.',
+          };
+      }
+  
+      const { id, ...userData } = validatedFields.data;
+  
+      try {
+          const userRef = doc(db, 'users', id);
+          // Use setDoc with merge: true to create or update the document
+          await setDoc(userRef, userData, { merge: true });
+      } catch (error) {
+          console.error("Firebase error:", error);
+          return {
+              message: 'Erro no Banco de Dados: Falha ao atualizar o perfil.',
+          };
+      }
+  
+      revalidatePath('/dashboard');
+      return { message: 'Perfil atualizado com sucesso!', errors: {} };
+  }
 
 
 export async function updateUserEnrollment(
@@ -141,7 +144,9 @@ export async function updateEnrollmentStatus(
         if (status === 'Concluído' || status === 'Completed') {
             updateData.completionDate = new Date().toISOString().split('T')[0];
         } else {
-            updateData.completionDate = ''; // Firestore can't delete a field directly with update, set to empty or null
+            // Firestore can't delete a field directly with update. To remove it, you'd have to read the doc, create a new object without the field, and set() it.
+            // For simplicity, we set it to an empty string.
+            updateData.completionDate = ''; 
         }
         await updateDoc(enrollmentDoc.ref, updateData);
     }
@@ -166,7 +171,7 @@ export async function deleteTraining({ userId, trainingId }: { userId: string; t
 }
 
 export async function deleteAllTrainings(userId: string) {
-    const q = query(collection(db, "enrollments"), where("userId", "==", userId), where("status", "in", ["Concluído", "Completed"]));
+    const q = query(collection(db, "enrollments"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
@@ -195,12 +200,13 @@ export async function getTrainings(): Promise<Training[]> {
 
 export async function getEnrollments(userId?: string) {
     let enrollmentsCol = collection(db, 'enrollments');
+    let q;
     if (userId) {
-        const q = query(enrollmentsCol, where('userId', '==', userId));
-        const enrollmentSnapshot = await getDocs(q);
-        return enrollmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        q = query(enrollmentsCol, where('userId', '==', userId));
+    } else {
+        q = query(enrollmentsCol);
     }
-    const enrollmentSnapshot = await getDocs(enrollmentsCol);
+    const enrollmentSnapshot = await getDocs(q);
     return enrollmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
@@ -220,11 +226,16 @@ export async function getEnrollmentsByTrainingId(trainingId: string) {
     return enrollmentSnapshot.docs.map(doc => doc.data());
 }
 
-export async function getUserById(id: string) {
-    const userDocRef = doc(db, 'users', id);
-    const userDoc = await getDoc(userDocRef);
-    if (userDoc.exists()) {
-        return { id: userDoc.id, ...userDoc.data() } as User;
+export async function getUserById(id: string): Promise<User | null> {
+    try {
+        const userDocRef = doc(db, 'users', id);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+            return { id: userDoc.id, ...userDoc.data() } as User;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching user by ID:", error);
+        return null;
     }
-    return null;
 }
